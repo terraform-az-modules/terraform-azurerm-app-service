@@ -18,19 +18,40 @@ module "labels" {
 ##----------------------------------------------------------------------------- 
 ## App service plan  
 ##-----------------------------------------------------------------------------
+# resource "azurerm_service_plan" "main" {
+#   count                        = var.enable ? 1 : 0
+#   name                         = var.resource_position_prefix ? format("service-plan-%s", local.name) : format("%s-service-plan", local.name)
+#   resource_group_name          = var.resource_group_name
+#   location                     = var.location
+#   os_type                      = var.os_type
+#   sku_name                     = var.sku_name
+#   worker_count                 = var.sku_name == "B1" ? null : var.worker_count
+#   maximum_elastic_worker_count = var.maximum_elastic_worker_count
+#   app_service_environment_id   = var.app_service_environment_id
+#   per_site_scaling_enabled     = var.per_site_scaling_enabled
+#   tags                         = module.labels.tags
+# }
+
+
 resource "azurerm_service_plan" "main" {
-  count                        = var.enable ? 1 : 0
-  name                         = var.resource_position_prefix ? format("service-plan-%s", local.name) : format("%s-service-plan", local.name)
-  resource_group_name          = var.resource_group_name
-  location                     = var.location
-  os_type                      = var.os_type
-  sku_name                     = var.sku_name
-  worker_count                 = var.sku_name == "B1" ? null : var.worker_count
+  count               = var.enable && var.enable_asp ? 1 : 0
+  name                = var.resource_position_prefix ? format("service-plan-%s", local.name) : format("%s-service-plan", local.name)
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  os_type             = var.os_type
+  # SKU and scale settings depend on os_type and user inputs; use a conditional to pick correct sku_name
+  sku_name = var.os_type == "Linux" ? var.linux_sku_name : var.windows_sku_name
+  worker_count = (
+    var.os_type == "Linux" && var.linux_sku_name == "B1" ? null :
+    var.worker_count
+  )
+  # Note: worker_count is null for Linux SKU "B1" as it doesn't support specifying worker count.
   maximum_elastic_worker_count = var.maximum_elastic_worker_count
   app_service_environment_id   = var.app_service_environment_id
   per_site_scaling_enabled     = var.per_site_scaling_enabled
   tags                         = module.labels.tags
 }
+
 
 resource "azurerm_linux_web_app" "main" {
   count                         = var.enable && var.os_type == "Linux" ? 1 : 0

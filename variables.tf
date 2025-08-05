@@ -650,3 +650,21 @@ variable "private_dns_zone_id" {
   default     = null
   description = "Id of the private DNS Zone"
 }
+
+variable "enable_asp" {
+  description = "Enable creation of the App Service Plan"
+  type        = bool
+  default     = true
+}
+
+variable "linux_sku_name" {
+  description = "SKU name for Linux App Service Plan (e.g. B1, P1V2)"
+  type        = string
+  default     = "B1"
+}
+
+variable "windows_sku_name" {
+  description = "SKU name for Windows App Service Plan (e.g. S1, P1V2)"
+  type        = string
+  default     = "S1"
+}
