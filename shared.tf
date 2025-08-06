@@ -1,0 +1,100 @@
+
+##-----------------------------------------------------------------------------
+## Tagging Module – Applies standard tags to all resources
+##-----------------------------------------------------------------------------
+module "labels" {
+  source          = "terraform-az-modules/tags/azure"
+  version         = "1.0.0"
+  name            = var.custom_name == null ? var.name : var.custom_name
+  location        = var.location
+  environment     = var.environment
+  managedby       = var.managedby
+  label_order     = var.label_order
+  repository      = var.repository
+  deployment_mode = var.deployment_mode
+  extra_tags      = var.extra_tags
+}
+
+##----------------------------------------------------------------------------- 
+## App service plan  
+##-----------------------------------------------------------------------------
+# resource "azurerm_service_plan" "main" {
+#   count                        = var.enable ? 1 : 0
+#   name                         = var.resource_position_prefix ? format("service-plan-%s", local.name) : format("%s-service-plan", local.name)
+#   resource_group_name          = var.resource_group_name
+#   location                     = var.location
+#   os_type                      = var.os_type
+#   sku_name                     = var.sku_name
+#   worker_count                 = var.sku_name == "B1" ? null : var.worker_count
+#   maximum_elastic_worker_count = var.maximum_elastic_worker_count
+#   app_service_environment_id   = var.app_service_environment_id
+#   per_site_scaling_enabled     = var.per_site_scaling_enabled
+#   tags                         = module.labels.tags
+# }
+
+
+resource "azurerm_service_plan" "main" {
+  count               = var.enable && var.enable_asp ? 1 : 0
+  name                = var.resource_position_prefix ? format("service-plan-%s", local.name) : format("%s-service-plan", local.name)
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  os_type             = var.os_type
+  # SKU and scale settings depend on os_type and user inputs; use a conditional to pick correct sku_name
+  sku_name = var.os_type == "Linux" ? var.linux_sku_name : var.windows_sku_name
+  worker_count = (
+    var.os_type == "Linux" && var.linux_sku_name == "B1" ? null :
+    var.worker_count
+  )
+  # Note: worker_count is null for Linux SKU "B1" as it doesn't support specifying worker count.
+  maximum_elastic_worker_count = var.maximum_elastic_worker_count
+  app_service_environment_id   = var.app_service_environment_id
+  per_site_scaling_enabled     = var.per_site_scaling_enabled
+  tags                         = module.labels.tags
+}
+
+
+resource "azurerm_application_insights" "app_insights" {
+  count               = var.enable && var.application_insights_enabled && var.application_insights_id == null ? 1 : 0
+  name                = var.resource_position_prefix ? format("app-insights-%s", local.name) : format("%s-app-insights", local.name)
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  application_type    = var.application_insights_type
+  sampling_percentage = var.application_insights_sampling_percentage
+  retention_in_days   = var.retention_in_days
+  disable_ip_masking  = var.disable_ip_masking
+  tags                = module.labels.tags
+  workspace_id        = var.log_analytics_workspace_id # Added log analytics workspace in app-insights
+}
+
+resource "azurerm_private_endpoint" "pep" {
+  count               = var.enable && var.enable_private_endpoint ? 1 : 0
+  name                = format("pe-%s", var.os_type == "Linux" ? azurerm_linux_web_app.main[0].name : azurerm_windows_web_app.main[0].name)
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = var.private_endpoint_subnet_id
+  tags                = module.labels.tags
+  private_service_connection {
+    name                           = var.resource_position_prefix ? format("psc-app-service-%s", local.name) : format("%s-psc-app-service", local.name)
+    is_manual_connection           = false
+    private_connection_resource_id = var.os_type == "Linux" ? azurerm_linux_web_app.main[0].id : azurerm_windows_web_app.main[0].id
+    subresource_names              = ["sites"]
+  }
+
+  private_dns_zone_group {
+    name                 = var.resource_position_prefix ? format("as-dns-zone-group-%s", local.name) : format("%s-as-dns-zone-group", local.name)
+    private_dns_zone_ids = [var.private_dns_zone_id]
+  }
+  lifecycle {
+    ignore_changes = [
+      tags,
+    ]
+  }
+}
+
+
+resource "azurerm_application_insights_api_key" "read_telemetry" {
+  name                    = var.resource_position_prefix ? format("appi-api-key-%s", local.name) : format("%s-appi-api-key", local.name)
+  application_insights_id = azurerm_application_insights.app_insights[0].id
+  read_permissions        = var.read_permissions
+}
+

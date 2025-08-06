@@ -90,12 +90,6 @@ variable "resource_group_name" {
   description = "A container that holds related resources for an Azure solution"
 }
 
-variable "location" {
-  type        = string
-  default     = null
-  description = "Location where resource group will be created."
-}
-
 variable "os_type" {
   type        = string
   description = "The O/S type for the App Services to be hosted in this plan. Possible values include `Windows`, `Linux`, and `WindowsContainer`."
@@ -620,6 +614,7 @@ variable "linux_app_stack" {
       registry_password = optional(string)
     })
   })
+  default = null
 }
 
 
@@ -643,6 +638,7 @@ variable "windows_app_stack" {
       registry_password = optional(string)
     })
   })
+  default = null
 }
 
 variable "private_dns_zone_id" {

@@ -101,7 +101,7 @@ module "log-analytics" {
   version                          = "2.0.0"
   name                             = "core"
   environment                      = "qa"
-  label_order                      = ["name", "environment", "location"]
+  label_order                      = ["name", "environment"]
   create_log_analytics_workspace   = true
   log_analytics_workspace_sku      = "PerGB2018"
   log_analytics_workspace_id       = module.log-analytics.workspace_id
@@ -122,8 +122,8 @@ module "private-dns-zone" {
 
 
 module "linux-web-app" {
-  depends_on          = [module.vnet, module.subnets]
-  source              = "../.."
+  source              = "../.." # Adjust path if needed
+  depends_on          = [module.vnet, module.subnet]
   enable              = true
   environment         = "qa"
   label_order         = ["name", "environment", "location"]
@@ -131,88 +131,56 @@ module "linux-web-app" {
   location            = module.resource_group.resource_group_location
   os_type             = "Linux"
   sku_name            = "B1"
-  service_plan_id     = module.app-service-plan.service_plan_id
-  # windows_app_stack = 
-  # linux_app_stack = 
+  # service_plan_id   = module.app-service-plan.service_plan_id (if using existing plan)
 
-  ##----------------------------------------------------------------------------- 
-  ## To Deploy Container
-  ##-----------------------------------------------------------------------------
-  use_docker               = false
-  docker_image_name        = "nginx:latest"
-  docker_registry_url      = "<registryname>.azurecr.io"
-  docker_registry_username = "<registryname>"
-  docker_registry_password = "<docker_registry_password>"
-  acr_id                   = "<acr_id>"
+  # Pass new stack object (set only what you want to use)
+  linux_app_stack = {
+    type                = "dotnet" # change to "node", "java", etc, as needed
+    dotnet_version      = "8.0"
+    node_version        = null
+    java_version        = null
+    java_server         = null
+    java_server_version = null
+    php_version         = null
+    python_version      = null
+    ruby_version        = null
+    go_version          = null
+    docker = {
+      enabled           = false
+      image             = null
+      registry_url      = null
+      registry_username = null
+      registry_password = null
+    }
+  }
 
-  ##----------------------------------------------------------------------------- 
-  ## Node application
-  ##-----------------------------------------------------------------------------
-  use_node     = false
-  node_version = "20-lts"
+  # VNet and Private Endpoint Integration
+  virtual_network_id                     = module.vnet.vnet_id
+  private_endpoint_subnet_id             = module.subnet.subnet_ids["sub3"] # Use private endpoint subnet as per new setup
+  enable_private_endpoint                = true
+  app_service_vnet_integration_subnet_id = module.subnet.subnet_ids["subnet2"] # Delegated subnet for App Service integration
 
-  ##----------------------------------------------------------------------------- 
-  ## Dot net application
-  ##-----------------------------------------------------------------------------
-  use_dotnet     = true
-  dotnet_version = "8.0"
-
-  ##----------------------------------------------------------------------------- 
-  ## Java application
-  ##-----------------------------------------------------------------------------
-  use_java            = false
-  java_version        = "17"
-  java_server         = "JAVA"
-  java_server_version = "17"
-
-  ##----------------------------------------------------------------------------- 
-  ## python application
-  ##-----------------------------------------------------------------------------
-
-  use_python     = false
-  python_version = "3.12"
-
-  ##----------------------------------------------------------------------------- 
-  ## php application
-  ##-----------------------------------------------------------------------------
-
-  use_php     = false
-  php_version = "8.2"
-
-  ##----------------------------------------------------------------------------- 
-  ## Ruby application
-  ##-----------------------------------------------------------------------------
-
-  use_ruby     = false
-  ruby_version = "2.7"
-
-  ##----------------------------------------------------------------------------- 
-  ## Go application
-  ##-----------------------------------------------------------------------------
-
-  use_go     = false
-  go_version = "1.19"
-
-  # Enable from specific ip addresses and virtual networks
   public_network_access_enabled = true
   authorized_ips                = ["10.0.2.10/24"]
-  authorized_subnet_ids         = [module.subnets.vnet_subnets["subnet-2"]]
+  authorized_subnet_ids         = [module.subnet.subnet_ids["subnet2"]] # Use correct subnet reference
   authorized_service_tags       = ["AppService"]
 
+  # Log Analytics (if you use your own workspace resource directly, update accordingly)
+  log_analytics_workspace_id = module.log-analytics.workspace_id
+
+  # Site config
   site_config = {
     container_registry_use_managed_identity = true
   }
 
-  # To enable app insights 
+  # Application Insights/AppSettings
   app_settings = {
-    application_insights_connection_string     = "${module.linux-web-app.connection_string}"
-    application_insights_key                   = "${module.linux-web-app.instrumentation_key}"
+    application_insights_connection_string     = module.linux-web-app.connection_string   # Reference module output
+    application_insights_key                   = module.linux-web-app.instrumentation_key # Reference module output
     ApplicationInsightsAgent_EXTENSION_VERSION = "~3"
   }
 
-  ##----------------------------------------------------------------------------- 
-  ## App service logs 
-  ##----------------------------------------------------------------------------- 
+  # App Service logs
   app_service_logs = {
     detailed_error_messages = false
     failed_request_tracing  = false
@@ -226,18 +194,5 @@ module "linux-web-app" {
       }
     }
   }
-  ##----------------------------------------------------------------------------- 
-  ## log analytics
-  ##-----------------------------------------------------------------------------
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.log-analytics.workspace_id
-
-  ##----------------------------------------------------------------------------- 
-  ## Vnet integration and private endpoint
-  ##-----------------------------------------------------------------------------
-  virtual_network_id                     = module.vnet.vnet_id
-  private_endpoint_subnet_id             = module.subnets.vnet_subnets["subnet-1"] # Normal subnet for private endpoint
-  enable_private_endpoint                = true
-  app_service_vnet_integration_subnet_id = module.subnets.vnet_subnets["subnet-2"] # Delegated subnet id for App Service VNet integration
-
 }
 
