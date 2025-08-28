@@ -1,209 +1,202 @@
+##-----------------------------------------------------------------------------
+## Provider
+##-----------------------------------------------------------------------------
 provider "azurerm" {
   features {}
-  subscription_id = ""
 }
 
-locals {
-  name          = "mmt"
-  environment   = "dev"
-  label_order   = ["name", "environment"]
-  location      = "uksouth"
-  taggedby      = "terraform"
-  projectdomain = "Membership"
-  costcenter    = "IT12345"
-  owner         = "TBC"
-}
-
+##-----------------------------------------------------------------------------
+## Resource Group
+##-----------------------------------------------------------------------------
 module "resource_group" {
-  source        = "../../../../resource-group"
-  name_postfix  = "clarion-dev-001"
-  environment   = local.environment
-  location      = local.location
-  taggedby      = local.taggedby
-  projectdomain = local.projectdomain
-  costcenter    = local.costcenter
-  owner         = local.owner
+  source      = "terraform-az-modules/resource-group/azure"
+  version     = "1.0.0"
+  name        = "core"
+  environment = "qa"
+  label_order = ["environment", "name", "location"]
+  location    = "canadacentral"
 }
 
+##-----------------------------------------------------------------------------
+## Virtual Network
+##-----------------------------------------------------------------------------
 module "vnet" {
-  source                 = "../../../../vnet"
-  name_postfix           = "clarion-dev-001"
-  environment            = local.environment
-  taggedby               = local.taggedby
-  owner                  = local.owner
-  resource_group_name    = module.resource_group.resource_group_name
-  location               = module.resource_group.resource_group_location
-  address_spaces         = ["10.0.0.0/16"]
-  enable_ddos_pp         = false
-  enable_network_watcher = false # To be set true when network security group flow logs are to be tracked and network watcher with specific name is to be deployed.
+  source              = "terraform-az-modules/vnet/azure"
+  version             = "1.0.0"
+  name                = "core"
+  environment         = "qa"
+  label_order         = ["name", "environment", "location"]
+  resource_group_name = module.resource_group.resource_group_name
+  location            = module.resource_group.resource_group_location
+  address_spaces      = ["10.0.0.0/16"]
 }
 
-module "subnets" {
-  source               = "../../../../subnet"
-  environment          = local.environment
-  taggedby             = local.taggedby
-  owner                = local.owner
+##-----------------------------------------------------------------------------
+## Subnets
+##-----------------------------------------------------------------------------
+module "subnet" {
+  source               = "terraform-az-modules/subnet/azure"
+  version              = "1.0.0"
+  environment          = "qa"
   resource_group_name  = module.resource_group.resource_group_name
   location             = module.resource_group.resource_group_location
   virtual_network_name = module.vnet.vnet_name
-
-  # Define all subnets in one place
-  vnet_subnets = [
+  subnets = [
     {
-      name               = "subnet-1"
-      cidr               = "10.0.1.0/24"
-      enable_route_table = true
-      service_endpoints  = []
-      delegations        = []
-      custom_routes = [
-        {
-          name           = "InternetRoute"
-          address_prefix = "0.0.0.0/0"
-          next_hop_type  = "Internet"
-          next_hop_ip    = null
-        }
-      ]
+      name            = "subnet1"
+      subnet_prefixes = ["10.0.1.0/24"]
     },
     {
-      name               = "subnet-2"
-      cidr               = "10.0.2.0/24"
-      enable_route_table = false
-      service_endpoints  = []
+      name            = "subnet2"
+      subnet_prefixes = ["10.0.2.0/24"]
+      # Delegation
       delegations = [
         {
-          name = "delegation"
+          name = "Microsoft.Web/serverFarms"
           service_delegations = [
             {
               name    = "Microsoft.Web/serverFarms"
-              actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+              actions = []
+              # Note: In some versions, 'actions' might not be required or is implicit
             }
           ]
         }
       ]
-      custom_routes = []
+    }
+  ]
+  enable_route_table = true
+  route_tables = [
+    {
+      name = "pub"
+      routes = [
+        {
+          name           = "rt-test"
+          address_prefix = "0.0.0.0/0"
+          next_hop_type  = "Internet"
+        }
+      ]
     }
   ]
 }
 
-resource "azurerm_log_analytics_workspace" "log-analytics" {
-  name                = "acctest-01"
-  location            = module.resource_group.resource_group_location
-  resource_group_name = module.resource_group.resource_group_name
-  sku                 = "PerGB2018"
-  retention_in_days   = 30
+##-----------------------------------------------------------------------------
+## Subnet for Private Endpoint
+##-----------------------------------------------------------------------------
+module "subnet-ep" {
+  source               = "terraform-az-modules/subnet/azure"
+  version              = "1.0.0"
+  environment          = "qa"
+  resource_group_name  = module.resource_group.resource_group_name
+  location             = module.resource_group.resource_group_location
+  virtual_network_name = module.vnet.vnet_name
+  subnets = [
+    {
+      name            = "sub3"
+      subnet_prefixes = ["10.0.3.0/24"]
+    }
+  ]
+  enable_route_table = false
 }
 
-
-module "app-service-plan" {
-  source              = "../../../../app-service-plan"
-  kind                = "Linux"
-  linux_sku_name      = "B1"
-  resource_group_name = module.resource_group.resource_group_name
-  location            = module.resource_group.resource_group_location
-  taggedby            = local.taggedby
-  owner               = local.owner
-  projectdomain       = local.projectdomain
-  costcenter          = local.costcenter
-  name_postfix        = "clarion-dev-001"
+##-----------------------------------------------------------------------------
+## Log Analytics
+##-----------------------------------------------------------------------------
+module "log-analytics" {
+  source                           = "clouddrove/log-analytics/azure"
+  version                          = "2.0.0"
+  name                             = "core"
+  environment                      = "qa"
+  label_order                      = ["name", "environment"]
+  create_log_analytics_workspace   = true
+  log_analytics_workspace_sku      = "PerGB2018"
+  log_analytics_workspace_id       = module.log-analytics.workspace_id
+  resource_group_name              = module.resource_group.resource_group_name
+  log_analytics_workspace_location = module.resource_group.resource_group_location
 }
 
+##-----------------------------------------------------------------------------
+## Private DNS Zone
+##-----------------------------------------------------------------------------
+module "private-dns-zone" {
+  source              = "terraform-az-modules/private-dns/azure"
+  version             = "1.0.0"
+  resource_group_name = module.resource_group.resource_group_name
+  location            = module.resource_group.resource_group_location
+  label_order         = ["name", "environment", "location"]
+  name                = "core"
+  environment         = "qa"
+  private_dns_config = [
+    {
+      resource_type = "azure_web_apps"
+      vnet_ids      = [module.vnet.vnet_id]
+    },
+  ]
+}
 
+##-----------------------------------------------------------------------------
+## Application Insights
+##-----------------------------------------------------------------------------
+module "application-insights" {
+  source                     = "git::https://github.com/terraform-az-modules/terraform-azure-application-insights.git?ref=feat/update"
+  name                       = "core"
+  environment                = "dev"
+  label_order                = ["name", "environment", "location"]
+  resource_group_name        = module.resource_group.resource_group_name
+  location                   = module.resource_group.resource_group_location
+  workspace_id               = module.log-analytics.workspace_id
+  log_analytics_workspace_id = module.log-analytics.workspace_id
+  web_test_enable            = false
+}
 
+##-----------------------------------------------------------------------------
+## Linux Web App
+##-----------------------------------------------------------------------------
 module "linux-web-app" {
-  depends_on          = [module.vnet, module.subnets]
-  source              = "../../.."
+  source              = "../.."
+  depends_on          = [module.vnet, module.subnet]
   enable              = true
-  name_postfix        = "clarion-dev-002"
-  environment         = local.environment
-  label_order         = local.label_order
-  taggedby            = local.taggedby
-  projectdomain       = local.projectdomain
-  costcenter          = local.costcenter
-  owner               = local.owner
+  name                = "core"
+  environment         = "qa"
+  label_order         = ["name", "environment", "location"]
   resource_group_name = module.resource_group.resource_group_name
   location            = module.resource_group.resource_group_location
   os_type             = "Linux"
   sku_name            = "B1"
-  service_plan_id     = module.app-service-plan.service_plan_id
 
-  ##----------------------------------------------------------------------------- 
-  ## To Deploy Container
-  ##-----------------------------------------------------------------------------
-  use_docker               = false
-  docker_image_name        = "nginx:latest"
-  docker_registry_url      = "<registryname>.azurecr.io"
-  docker_registry_username = "<registryname>"
-  docker_registry_password = "<docker_registry_password>"
-  acr_id                   = "<acr_id>"
+  linux_app_stack = {
+    type           = "dotnet" # change to "node", "java", etc, as needed
+    dotnet_version = "8.0"
+    docker = {
+      enabled = false
+    }
+  }
+  # VNet and Private Endpoint Integration
+  virtual_network_id                     = module.vnet.vnet_id
+  private_endpoint_subnet_id             = module.subnet-ep.subnet_ids["sub3"] # Use private endpoint subnet
+  enable_private_endpoint                = true
+  app_service_vnet_integration_subnet_id = module.subnet.subnet_ids["subnet2"]                         # Delegated subnet for App Service integration
+  private_dns_zone_ids                   = module.private-dns-zone.private_dns_zone_ids.azure_web_apps # Reference the private DNS zone IDs for web apps
 
-  ##----------------------------------------------------------------------------- 
-  ## Node application
-  ##-----------------------------------------------------------------------------
-  use_node     = false
-  node_version = "20-lts"
-
-  ##----------------------------------------------------------------------------- 
-  ## Dot net application
-  ##-----------------------------------------------------------------------------
-  use_dotnet     = true
-  dotnet_version = "8.0"
-
-  ##----------------------------------------------------------------------------- 
-  ## Java application
-  ##-----------------------------------------------------------------------------
-  use_java            = false
-  java_version        = "17"
-  java_server         = "JAVA"
-  java_server_version = "17"
-
-  ##----------------------------------------------------------------------------- 
-  ## python application
-  ##-----------------------------------------------------------------------------
-
-  use_python     = false
-  python_version = "3.12"
-
-  ##----------------------------------------------------------------------------- 
-  ## php application
-  ##-----------------------------------------------------------------------------
-
-  use_php     = false
-  php_version = "8.2"
-
-  ##----------------------------------------------------------------------------- 
-  ## Ruby application
-  ##-----------------------------------------------------------------------------
-
-  use_ruby     = false
-  ruby_version = "2.7"
-
-  ##----------------------------------------------------------------------------- 
-  ## Go application
-  ##-----------------------------------------------------------------------------
-
-  use_go     = false
-  go_version = "1.19"
-
-  # Enable from specific ip addresses and virtual networks
   public_network_access_enabled = true
   authorized_ips                = ["10.0.2.10/24"]
-  authorized_subnet_ids         = [module.subnets.vnet_subnets["subnet-2"]]
+  authorized_subnet_ids         = [module.subnet.subnet_ids["subnet2"]] # Use correct subnet reference
   authorized_service_tags       = ["AppService"]
 
+  log_analytics_workspace_id = module.log-analytics.workspace_id
+  # Site config
   site_config = {
     container_registry_use_managed_identity = true
   }
 
-  # To enable app insights 
+  # Application Insights/AppSettings
   app_settings = {
-    application_insights_connection_string     = "${module.linux-web-app.connection_string}"
-    application_insights_key                   = "${module.linux-web-app.instrumentation_key}"
     ApplicationInsightsAgent_EXTENSION_VERSION = "~3"
   }
+  app_insights_id                  = module.application-insights.app_insights_id
+  app_insights_instrumentation_key = module.application-insights.instrumentation_key
+  app_insights_connection_string   = module.application-insights.connection_string
 
-  ##----------------------------------------------------------------------------- 
-  ## App service logs 
-  ##----------------------------------------------------------------------------- 
+  # App Service logs
   app_service_logs = {
     detailed_error_messages = false
     failed_request_tracing  = false
@@ -217,18 +210,4 @@ module "linux-web-app" {
       }
     }
   }
-  ##----------------------------------------------------------------------------- 
-  ## log analytics
-  ##-----------------------------------------------------------------------------
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.log-analytics.workspace_id
-
-  ##----------------------------------------------------------------------------- 
-  ## Vnet integration and private endpoint
-  ##-----------------------------------------------------------------------------
-  virtual_network_id                     = module.vnet.vnet_id
-  private_endpoint_subnet_id             = module.subnets.vnet_subnets["subnet-1"] # Normal subnet for private endpoint
-  enable_private_endpoint                = true
-  app_service_vnet_integration_subnet_id = module.subnets.vnet_subnets["subnet-2"] # Delegated subnet id for App Service VNet integration
-
 }
-

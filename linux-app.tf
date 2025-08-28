@@ -1,3 +1,6 @@
+##-----------------------------------------------------------------------------
+## Linux Web App
+##-----------------------------------------------------------------------------
 resource "azurerm_linux_web_app" "main" {
   count                         = var.enable && var.os_type == "Linux" ? 1 : 0
   name                          = var.resource_position_prefix ? format("app-%s", local.name) : format("%s-app", local.name)
@@ -5,32 +8,29 @@ resource "azurerm_linux_web_app" "main" {
   location                      = var.location
   service_plan_id               = azurerm_service_plan.main[0].id
   public_network_access_enabled = var.public_network_access_enabled
-  # Vnet Integration
-  virtual_network_subnet_id = var.app_service_vnet_integration_subnet_id
+  virtual_network_subnet_id     = var.app_service_vnet_integration_subnet_id
 
   dynamic "site_config" {
     for_each = [local.site_config]
-
     content {
       linux_fx_version                              = lookup(site_config.value, "linux_fx_version", null)
       container_registry_managed_identity_client_id = lookup(site_config.value, "container_registry_managed_identity_client_id", null)
       container_registry_use_managed_identity       = lookup(site_config.value, "container_registry_use_managed_identity", null)
-
-      always_on                     = lookup(site_config.value, "always_on", null)
-      app_command_line              = lookup(site_config.value, "app_command_line", null)
-      default_documents             = lookup(site_config.value, "default_documents", null)
-      ftps_state                    = lookup(site_config.value, "ftps_state", "FtpsOnly")
-      health_check_path             = lookup(site_config.value, "health_check_path", null)
-      http2_enabled                 = lookup(site_config.value, "http2_enabled", null)
-      local_mysql_enabled           = lookup(site_config.value, "local_mysql_enabled", false)
-      managed_pipeline_mode         = lookup(site_config.value, "managed_pipeline_mode", null)
-      minimum_tls_version           = lookup(site_config.value, "minimum_tls_version", lookup(site_config.value, "min_tls_version", "1.2"))
-      remote_debugging_enabled      = lookup(site_config.value, "remote_debugging_enabled", false)
-      remote_debugging_version      = lookup(site_config.value, "remote_debugging_version", null)
-      use_32_bit_worker             = lookup(site_config.value, "use_32_bit_worker", false)
-      websockets_enabled            = lookup(site_config.value, "websockets_enabled", false)
-      worker_count                  = var.linux_web_app_worker_count
-      ip_restriction_default_action = var.ip_restriction_default_action
+      always_on                                     = lookup(site_config.value, "always_on", null)
+      app_command_line                              = lookup(site_config.value, "app_command_line", null)
+      default_documents                             = lookup(site_config.value, "default_documents", null)
+      ftps_state                                    = lookup(site_config.value, "ftps_state", "FtpsOnly")
+      health_check_path                             = lookup(site_config.value, "health_check_path", null)
+      http2_enabled                                 = lookup(site_config.value, "http2_enabled", null)
+      local_mysql_enabled                           = lookup(site_config.value, "local_mysql_enabled", false)
+      managed_pipeline_mode                         = lookup(site_config.value, "managed_pipeline_mode", null)
+      minimum_tls_version                           = lookup(site_config.value, "minimum_tls_version", lookup(site_config.value, "min_tls_version", "1.2"))
+      remote_debugging_enabled                      = lookup(site_config.value, "remote_debugging_enabled", false)
+      remote_debugging_version                      = lookup(site_config.value, "remote_debugging_version", null)
+      use_32_bit_worker                             = lookup(site_config.value, "use_32_bit_worker", false)
+      websockets_enabled                            = lookup(site_config.value, "websockets_enabled", false)
+      worker_count                                  = var.linux_web_app_worker_count
+      ip_restriction_default_action                 = var.ip_restriction_default_action
 
       dynamic "ip_restriction" {
         for_each = var.ip_restrictions
@@ -62,22 +62,6 @@ resource "azurerm_linux_web_app" "main" {
 
       vnet_route_all_enabled = var.app_service_vnet_integration_subnet_id != null
 
-      # application_stack {
-      #   docker_image_name        = var.use_docker ? var.docker_image_name : null
-      #   docker_registry_url      = var.use_docker ? format("https://%s", var.docker_registry_url) : null
-      #   docker_registry_username = var.use_docker ? var.docker_registry_username : null
-      #   docker_registry_password = var.use_docker ? var.docker_registry_password : null
-      #   dotnet_version           = var.use_dotnet ? var.dotnet_version : null
-      #   node_version             = var.use_node ? var.node_version : null
-      #   java_version             = var.use_java ? var.java_version : null
-      #   java_server              = var.use_java ? var.java_server : null
-      #   java_server_version      = var.use_java ? var.java_server_version : null
-      #   php_version              = var.use_php ? var.php_version : null
-      #   python_version           = var.use_python ? var.python_version : null
-      #   ruby_version             = var.use_ruby ? var.ruby_version : null
-      #   go_version               = var.use_go ? var.go_version : null
-      # }
-
       application_stack {
         docker_image_name        = var.linux_app_stack.docker.enabled ? var.linux_app_stack.docker.image : null
         docker_registry_url      = var.linux_app_stack.docker.enabled ? format("https://%s", var.linux_app_stack.docker.registry_url) : null
@@ -94,8 +78,6 @@ resource "azurerm_linux_web_app" "main" {
         ruby_version        = var.linux_app_stack.type == "ruby" ? var.linux_app_stack.ruby_version : null
         go_version          = var.linux_app_stack.type == "go" ? var.linux_app_stack.go_version : null
       }
-
-
 
       dynamic "cors" {
         for_each = lookup(site_config.value, "cors", [])
@@ -117,7 +99,6 @@ resource "azurerm_linux_web_app" "main" {
       value = lookup(connection_string.value, "value", null)
     }
   }
-
 
   dynamic "auth_settings" {
     for_each = local.auth_settings.enabled ? ["enabled"] : []

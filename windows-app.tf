@@ -1,14 +1,11 @@
 resource "azurerm_windows_web_app" "main" {
-  count               = var.enable && var.os_type == "Windows" ? 1 : 0
-  name                = var.resource_position_prefix ? format("app-%s", local.name) : format("%s-app", local.name)
-  resource_group_name = var.resource_group_name
-  location            = var.location
-  service_plan_id     = var.service_plan_id
-
+  count                         = var.enable && var.os_type == "Windows" ? 1 : 0
+  name                          = var.resource_position_prefix ? format("app-%s", local.name) : format("%s-app", local.name)
+  resource_group_name           = var.resource_group_name
+  location                      = var.location
+  service_plan_id               = azurerm_service_plan.main[0].id
   public_network_access_enabled = var.public_network_access_enabled
-
-  # Vnet Integration
-  virtual_network_subnet_id = var.app_service_vnet_integration_subnet_id
+  virtual_network_subnet_id     = var.app_service_vnet_integration_subnet_id
 
   dynamic "site_config" {
     for_each = [local.site_config]
@@ -64,29 +61,11 @@ resource "azurerm_windows_web_app" "main" {
 
       vnet_route_all_enabled = var.app_service_vnet_integration_subnet_id != null
 
-      # application_stack {
-      #   docker_image_name            = var.use_docker ? var.docker_image_name : null
-      #   docker_registry_url          = var.use_docker ? format("https://%s", var.docker_registry_url) : null
-      #   docker_registry_username     = var.use_docker ? var.docker_registry_username : null
-      #   docker_registry_password     = var.use_docker ? var.docker_registry_password : null
-      #   current_stack                = var.use_current_stack ? var.current_stack : null
-      #   python                       = var.use_python && var.current_stack == "python" ? var.use_python : null # Can only be true or false 
-      #   php_version                  = var.use_php && var.current_stack == "php" ? var.php_version : null
-      #   node_version                 = var.use_node && var.current_stack == "node" ? var.node_version : null
-      #   java_version                 = var.use_java && var.current_stack == "java" ? var.java_version : null
-      #   java_embedded_server_enabled = var.use_java && var.current_stack == "java" ? var.java_embedded_server_enabled : null
-      #   tomcat_version               = var.use_tomcat ? var.tomcat_version : null
-      #   dotnet_version               = var.use_dotnet && var.current_stack == "dotnet" ? var.dotnet_version : null
-      #   dotnet_core_version          = var.use_dotnet && var.current_stack == "dotnetcore" ? var.dotnet_core_version : null
-      # }
-
-
       application_stack {
-        docker_image_name        = var.windows_app_stack.docker.enabled ? var.windows_app_stack.docker.image : null
-        docker_registry_url      = var.windows_app_stack.docker.enabled ? format("https://%s", var.windows_app_stack.docker.registry_url) : null
-        docker_registry_username = var.windows_app_stack.docker.enabled ? var.windows_app_stack.docker.registry_username : null
-        docker_registry_password = var.windows_app_stack.docker.enabled ? var.windows_app_stack.docker.registry_password : null
-
+        docker_image_name            = var.windows_app_stack.docker.enabled ? var.windows_app_stack.docker.image : null
+        docker_registry_url          = var.windows_app_stack.docker.enabled ? format("https://%s", var.windows_app_stack.docker.registry_url) : null
+        docker_registry_username     = var.windows_app_stack.docker.enabled ? var.windows_app_stack.docker.registry_username : null
+        docker_registry_password     = var.windows_app_stack.docker.enabled ? var.windows_app_stack.docker.registry_password : null
         current_stack                = var.windows_app_stack.current_stack
         python                       = (var.windows_app_stack.current_stack == "python") ? var.windows_app_stack.python : null
         php_version                  = (var.windows_app_stack.current_stack == "php") ? var.windows_app_stack.php_version : null
@@ -97,7 +76,6 @@ resource "azurerm_windows_web_app" "main" {
         dotnet_version               = (var.windows_app_stack.current_stack == "dotnet") ? var.windows_app_stack.dotnet_version : null
         dotnet_core_version          = (var.windows_app_stack.current_stack == "dotnetcore") ? var.windows_app_stack.dotnet_core_version : null
       }
-
 
       dynamic "cors" {
         for_each = lookup(site_config.value, "cors", [])
@@ -111,7 +89,6 @@ resource "azurerm_windows_web_app" "main" {
 
   app_settings = var.staging_slot_custom_app_settings == null ? local.app_settings : merge(local.default_app_settings, var.staging_slot_custom_app_settings)
 
-
   dynamic "connection_string" {
     for_each = var.connection_strings
     content {
@@ -120,7 +97,6 @@ resource "azurerm_windows_web_app" "main" {
       value = lookup(connection_string.value, "value", null)
     }
   }
-
 
   dynamic "auth_settings" {
     for_each = local.auth_settings.enabled ? ["enabled"] : []

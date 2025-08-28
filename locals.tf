@@ -1,7 +1,6 @@
 ##-----------------------------------------------------------------------------
 ## Locals
 ##-----------------------------------------------------------------------------
-
 locals {
   name = var.custom_name != null ? var.custom_name : module.labels.id
 
@@ -11,7 +10,6 @@ locals {
   }
 
   site_config = merge(local.default_site_config, var.site_config)
-
 
   default_ip_restrictions_headers = {
     x_azure_fdid      = null
@@ -55,15 +53,12 @@ locals {
     headers                   = local.scm_ip_restriction_headers
   }]
 
-  app_insights = try(data.azurerm_application_insights.app_insights[0], try(azurerm_application_insights.app_insights[0], {}))
-
-
-  app_settings = merge(local.default_app_settings, var.app_settings)
   default_app_settings = var.application_insights_enabled ? {
-    APPLICATION_INSIGHTS_IKEY             = try(local.app_insights.instrumentation_key, "")
-    APPINSIGHTS_INSTRUMENTATIONKEY        = try(local.app_insights.instrumentation_key, "")
-    APPLICATIONINSIGHTS_CONNECTION_STRING = try(local.app_insights.connection_string, "")
+    APPLICATION_INSIGHTS_IKEY             = var.app_insights_instrumentation_key
+    APPINSIGHTS_INSTRUMENTATIONKEY        = var.app_insights_instrumentation_key
+    APPLICATIONINSIGHTS_CONNECTION_STRING = var.app_insights_connection_string
   } : {}
+  app_settings = merge(local.default_app_settings, var.app_settings)
 
   auth_settings_active_directory = merge(
     {
@@ -89,7 +84,6 @@ locals {
       active_directory               = null
     },
   var.auth_settings)
-
 
   auth_settings_v2_login_default = {
     token_store_enabled               = false

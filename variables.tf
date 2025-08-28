@@ -1,3 +1,4 @@
+
 ##-----------------------------------------------------------------------------
 ## Naming convention
 ##-----------------------------------------------------------------------------
@@ -77,7 +78,9 @@ variable "extra_tags" {
   description = "Variable to pass extra tags."
 }
 
-
+##-----------------------------------------------------------------------------
+## Global Variables
+##-----------------------------------------------------------------------------
 variable "enable" {
   type        = bool
   default     = true
@@ -98,6 +101,15 @@ variable "os_type" {
     condition     = try(contains(["Windows", "Linux", "WindowsContainer"], var.os_type), true)
     error_message = "The `os_type` value must be valid. Possible values are `Windows`, `Linux`, and `WindowsContainer`."
   }
+}
+
+##-----------------------------------------------------------------------------
+## App Service Plan 
+##-----------------------------------------------------------------------------
+variable "enable_asp" {
+  type        = bool
+  default     = true
+  description = "Enable creation of the App Service Plan"
 }
 
 variable "sku_name" {
@@ -134,6 +146,9 @@ variable "per_site_scaling_enabled" {
   description = "Should Per Site Scaling be enabled."
 }
 
+##-----------------------------------------------------------------------------
+## App Service
+##-----------------------------------------------------------------------------
 variable "public_network_access_enabled" {
   type        = bool
   default     = true
@@ -278,12 +293,6 @@ variable "ruby_version" {
   description = "Ruby version"
 }
 
-variable "application_insights_enabled" {
-  type        = bool
-  default     = true
-  description = "Use Application Insights for this App Service"
-}
-
 variable "app_settings" {
   type        = map(string)
   default     = {}
@@ -363,24 +372,6 @@ variable "identity" {
     identity_ids = []
   }
   description = "Map with identity block information."
-}
-
-variable "application_insights_id" {
-  type        = string
-  default     = null
-  description = "ID of the existing Application Insights to use instead of deploying a new one."
-}
-
-variable "application_insights_type" {
-  type        = string
-  default     = "web"
-  description = "Application type for Application Insights resource"
-}
-
-variable "application_insights_sampling_percentage" {
-  type        = number
-  default     = null
-  description = "Specifies the percentage of sampled datas for Application Insights. Documentation [here](https://docs.microsoft.com/en-us/azure/azure-monitor/app/sampling#ingestion-sampling)"
 }
 
 variable "acr_id" {
@@ -596,7 +587,7 @@ variable "ip_restriction_default_action" {
 variable "linux_app_stack" {
   description = "Linux app service stack and Docker configuration"
   type = object({
-    type                = string
+    type                = optional(string, null)
     dotnet_version      = optional(string)
     node_version        = optional(string)
     java_version        = optional(string)
@@ -616,7 +607,6 @@ variable "linux_app_stack" {
   })
   default = null
 }
-
 
 variable "windows_app_stack" {
   description = "Windows app service stack and Docker configuration"
@@ -641,26 +631,47 @@ variable "windows_app_stack" {
   default = null
 }
 
-variable "private_dns_zone_id" {
+variable "private_dns_zone_ids" {
   type        = string
   default     = null
   description = "Id of the private DNS Zone"
 }
 
-variable "enable_asp" {
-  description = "Enable creation of the App Service Plan"
-  type        = bool
-  default     = true
-}
-
 variable "linux_sku_name" {
-  description = "SKU name for Linux App Service Plan (e.g. B1, P1V2)"
   type        = string
   default     = "B1"
+  description = "SKU name for Linux App Service Plan (e.g. B1, P1V2)"
 }
 
 variable "windows_sku_name" {
-  description = "SKU name for Windows App Service Plan (e.g. S1, P1V2)"
   type        = string
   default     = "S1"
+  description = "SKU name for Windows App Service Plan (e.g. S1, P1V2)"
+}
+
+##-----------------------------------------------------------------------------
+## Application Insights
+##-----------------------------------------------------------------------------
+variable "app_insights_id" {
+  type        = string
+  default     = null
+  description = "ID of the existing Application Insights resource to use"
+}
+
+variable "app_insights_instrumentation_key" {
+  type        = string
+  default     = null
+  description = "Instrumentation key of Application Insights"
+}
+
+variable "app_insights_connection_string" {
+  type        = string
+  default     = null
+  description = "Connection string of App Insights"
+}
+
+variable "application_insights_enabled" {
+  type        = bool
+  default     = true
+  description = "Enable Application Insights integration"
 }

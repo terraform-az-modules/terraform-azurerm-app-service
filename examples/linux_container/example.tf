@@ -1,8 +1,13 @@
+##-----------------------------------------------------------------------------
+## Provider
+##-----------------------------------------------------------------------------
 provider "azurerm" {
   features {}
-  subscription_id = ""
 }
 
+##-----------------------------------------------------------------------------
+## Resource Group
+##-----------------------------------------------------------------------------
 module "resource_group" {
   source      = "terraform-az-modules/resource-group/azure"
   version     = "1.0.0"
@@ -12,6 +17,9 @@ module "resource_group" {
   location    = "canadacentral"
 }
 
+##-----------------------------------------------------------------------------
+## Virtual Network
+##-----------------------------------------------------------------------------
 module "vnet" {
   source              = "terraform-az-modules/vnet/azure"
   version             = "1.0.0"
@@ -23,22 +31,20 @@ module "vnet" {
   address_spaces      = ["10.0.0.0/16"]
 }
 
+##-----------------------------------------------------------------------------
+## Subnets
+##-----------------------------------------------------------------------------
 module "subnet" {
-  source      = "terraform-az-modules/subnet/azure"
-  version     = "1.0.0"
-  environment = "qa"
-  # label_order          = ["environment", "name", "location"]
+  source               = "terraform-az-modules/subnet/azure"
+  version              = "1.0.0"
+  environment          = "qa"
   resource_group_name  = module.resource_group.resource_group_name
   location             = module.resource_group.resource_group_location
   virtual_network_name = module.vnet.vnet_name
-
   subnets = [
     {
       name            = "subnet1"
       subnet_prefixes = ["10.0.1.0/24"]
-
-      # Example of service endpoints, if used
-      # service_endpoints = ["Microsoft.Storage"]
     },
     {
       name            = "subnet2"
@@ -50,7 +56,7 @@ module "subnet" {
           name = "Microsoft.Web/serverFarms"
           service_delegations = [
             {
-              name    = "Microsoft.Network/virtualNetworks/subnets/action"
+              name    = "Microsoft.Web/serverFarms"
               actions = []
               # Note: In some versions, 'actions' might not be required or is implicit
             }
@@ -59,9 +65,7 @@ module "subnet" {
       ]
     }
   ]
-
   enable_route_table = true
-
   route_tables = [
     {
       name = "pub"
@@ -76,11 +80,13 @@ module "subnet" {
   ]
 }
 
+##-----------------------------------------------------------------------------
+## Subnet for Private Endpoint
+##-----------------------------------------------------------------------------
 module "subnet-ep" {
-  source      = "terraform-az-modules/subnet/azure"
-  version     = "1.0.0"
-  environment = "qa"
-  # label_order          = ["environment", "name", "location"]
+  source               = "terraform-az-modules/subnet/azure"
+  version              = "1.0.0"
+  environment          = "qa"
   resource_group_name  = module.resource_group.resource_group_name
   location             = module.resource_group.resource_group_location
   virtual_network_name = module.vnet.vnet_name
@@ -91,11 +97,12 @@ module "subnet-ep" {
       subnet_prefixes = ["10.0.3.0/24"]
     }
   ]
-
   enable_route_table = false
 }
 
-
+##-----------------------------------------------------------------------------
+## Log Analytics
+##-----------------------------------------------------------------------------
 module "log-analytics" {
   source                           = "clouddrove/log-analytics/azure"
   version                          = "2.0.0"
@@ -109,9 +116,17 @@ module "log-analytics" {
   log_analytics_workspace_location = module.resource_group.resource_group_location
 }
 
+##-----------------------------------------------------------------------------
+## Private DNS Zone
+##-----------------------------------------------------------------------------
 module "private-dns-zone" {
-  source              = "git::https://github.com/terraform-az-modules/terraform-azure-private-dns.git?ref=feat/beta"
+  source              = "terraform-az-modules/private-dns/azure"
+  version             = "1.0.0"
   resource_group_name = module.resource_group.resource_group_name
+  location            = module.resource_group.resource_group_location
+  label_order         = ["name", "environment", "location"]
+  name                = "core"
+  environment         = "qa"
   private_dns_config = [
     {
       resource_type = "azure_web_apps"
@@ -120,47 +135,56 @@ module "private-dns-zone" {
   ]
 }
 
+##-----------------------------------------------------------------------------
+## Application Insights
+##-----------------------------------------------------------------------------
+module "application-insights" {
+  source                     = "git::https://github.com/terraform-az-modules/terraform-azure-application-insights.git?ref=feat/update"
+  name                       = "core"
+  environment                = "dev"
+  label_order                = ["name", "environment", "location"]
+  resource_group_name        = module.resource_group.resource_group_name
+  location                   = module.resource_group.resource_group_location
+  workspace_id               = module.log-analytics.workspace_id
+  log_analytics_workspace_id = module.log-analytics.workspace_id
+  web_test_enable            = false
+}
 
+##-----------------------------------------------------------------------------
+## Linux Web App with Container
+##-----------------------------------------------------------------------------
 module "linux-web-app" {
-  source              = "../.." # Adjust path if needed
+  source              = "../.."
   depends_on          = [module.vnet, module.subnet]
   enable              = true
+  name                = "core"
   environment         = "qa"
   label_order         = ["name", "environment", "location"]
   resource_group_name = module.resource_group.resource_group_name
   location            = module.resource_group.resource_group_location
   os_type             = "Linux"
   sku_name            = "B1"
-  # service_plan_id   = module.app-service-plan.service_plan_id (if using existing plan)
 
-  # Pass new stack object (set only what you want to use)
   linux_app_stack = {
-    type                = "dotnet" # change to "node", "java", etc, as needed
-    dotnet_version      = "8.0"
-    node_version        = null
-    java_version        = null
-    java_server         = null
-    java_server_version = null
-    php_version         = null
-    python_version      = null
-    ruby_version        = null
-    go_version          = null
     docker = {
-      enabled           = false
-      image             = null
-      registry_url      = null
-      registry_username = null
-      registry_password = null
+      enabled           = true
+      image             = "nginx:latest"
+      registry_url      = "testcr10.azurecr.io" # null for public hub; set like "myregistry.azurecr.io" for ACR
+      registry_username = "testcr10"
+      registry_password = ""
     }
   }
+  acr_id = "<acr_id>" # Set your ACR resource ID here
 
   # VNet and Private Endpoint Integration
   virtual_network_id                     = module.vnet.vnet_id
-  private_endpoint_subnet_id             = module.subnet.subnet_ids["sub3"] # Use private endpoint subnet as per new setup
+  private_endpoint_subnet_id             = module.subnet-ep.subnet_ids["sub3"] # Use private endpoint subnet here
   enable_private_endpoint                = true
-  app_service_vnet_integration_subnet_id = module.subnet.subnet_ids["subnet2"] # Delegated subnet for App Service integration
+  app_service_vnet_integration_subnet_id = module.subnet.subnet_ids["subnet2"]                         # Delegated subnet for App Service integration
+  private_dns_zone_ids                   = module.private-dns-zone.private_dns_zone_ids.azure_web_apps # Reference the private DNS zone IDs for web apps
 
   public_network_access_enabled = true
+  ip_restriction_default_action = "Allow"
   authorized_ips                = ["10.0.2.10/24"]
   authorized_subnet_ids         = [module.subnet.subnet_ids["subnet2"]] # Use correct subnet reference
   authorized_service_tags       = ["AppService"]
@@ -175,10 +199,11 @@ module "linux-web-app" {
 
   # Application Insights/AppSettings
   app_settings = {
-    application_insights_connection_string     = module.linux-web-app.connection_string   # Reference module output
-    application_insights_key                   = module.linux-web-app.instrumentation_key # Reference module output
     ApplicationInsightsAgent_EXTENSION_VERSION = "~3"
   }
+  app_insights_id                  = module.application-insights.app_insights_id
+  app_insights_instrumentation_key = module.application-insights.instrumentation_key
+  app_insights_connection_string   = module.application-insights.connection_string
 
   # App Service logs
   app_service_logs = {
@@ -195,4 +220,5 @@ module "linux-web-app" {
     }
   }
 }
+
 
