@@ -6,10 +6,20 @@ on:
   workflow_dispatch:
 jobs:
 # Update 'Job name' and 'working_directory' as needed based on the module structure.
-  complete-example:
+  linux-container-example:
     uses: clouddrove/github-shared-workflows/.github/workflows/tf-checks.yml@master
     with:
-      working_directory: './examples/complete/'
+      working_directory: './examples/linux_container/'
+
+  linux-web-app-example:
+    uses: clouddrove/github-shared-workflows/.github/workflows/tf-checks.yml@master
+    with:
+      working_directory: './examples/linux_web_app/'
+
+  windows-web-app-example:
+    uses: clouddrove/github-shared-workflows/.github/workflows/tf-checks.yml@master
+    with:
+      working_directory: './examples/windows_web_app/'
   
 # Seperate Job for TFlint workflow call
   tf-lint:

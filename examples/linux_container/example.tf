@@ -163,8 +163,7 @@ module "linux-web-app" {
   resource_group_name = module.resource_group.resource_group_name
   location            = module.resource_group.resource_group_location
   os_type             = "Linux"
-  sku_name            = "B1"
-
+  linux_sku_name      = "B1"
   linux_app_stack = {
     docker = {
       enabled           = true
@@ -175,28 +174,17 @@ module "linux-web-app" {
     }
   }
   acr_id = "<acr_id>" # Set your ACR resource ID here
-
   # VNet and Private Endpoint Integration
-  virtual_network_id                     = module.vnet.vnet_id
   private_endpoint_subnet_id             = module.subnet-ep.subnet_ids["sub3"] # Use private endpoint subnet here
   enable_private_endpoint                = true
   app_service_vnet_integration_subnet_id = module.subnet.subnet_ids["subnet2"]                         # Delegated subnet for App Service integration
   private_dns_zone_ids                   = module.private-dns-zone.private_dns_zone_ids.azure_web_apps # Reference the private DNS zone IDs for web apps
-
-  public_network_access_enabled = true
-  ip_restriction_default_action = "Allow"
-  authorized_ips                = ["10.0.2.10/24"]
-  authorized_subnet_ids         = [module.subnet.subnet_ids["subnet2"]] # Use correct subnet reference
-  authorized_service_tags       = ["AppService"]
-
-  # Log Analytics (if you use your own workspace resource directly, update accordingly)
-  log_analytics_workspace_id = module.log-analytics.workspace_id
-
+  public_network_access_enabled          = true
+  ip_restriction_default_action          = "Allow"
   # Site config
   site_config = {
-    container_registry_use_managed_identity = true
+    container_registry_use_managed_identity = true # Set to true if using managed identity for ACR access
   }
-
   # Application Insights/AppSettings
   app_settings = {
     ApplicationInsightsAgent_EXTENSION_VERSION = "~3"
@@ -204,7 +192,6 @@ module "linux-web-app" {
   app_insights_id                  = module.application-insights.app_insights_id
   app_insights_instrumentation_key = module.application-insights.instrumentation_key
   app_insights_connection_string   = module.application-insights.connection_string
-
   # App Service logs
   app_service_logs = {
     detailed_error_messages = false

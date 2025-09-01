@@ -162,8 +162,7 @@ module "windows-web-app" {
   resource_group_name = module.resource_group.resource_group_name
   location            = module.resource_group.resource_group_location
   os_type             = "Windows"
-  sku_name            = "S1"
-
+  windows_sku_name    = "S1"
   windows_app_stack = {
     current_stack       = "dotnetcore" # set the app stack type, e.g., "dotnetcore", "node", "java"
     dotnet_core_version = "v4.0"
@@ -171,27 +170,19 @@ module "windows-web-app" {
       enabled = false
     }
   }
-
   # VNet and Private Endpoint Integration
-  virtual_network_id                     = module.vnet.vnet_id
   private_endpoint_subnet_id             = module.subnet-ep.subnet_ids["sub3"] # Use private endpoint subnet
   enable_private_endpoint                = true
   app_service_vnet_integration_subnet_id = module.subnet.subnet_ids["subnet2"]                         # Delegated subnet for App Service integration
   private_dns_zone_ids                   = module.private-dns-zone.private_dns_zone_ids.azure_web_apps # Reference the private DNS zone IDs for web apps
-
-  public_network_access_enabled = true
-  authorized_ips                = ["10.0.2.10/24"]
-  authorized_subnet_ids         = [module.subnet.subnet_ids["subnet2"]] # Use correct subnet reference
-  authorized_service_tags       = ["AppService"]
-
-  # Log Analytics
-  log_analytics_workspace_id = module.log-analytics.workspace_id
-
+  public_network_access_enabled          = true
+  scm_authorized_ips                     = ["10.0.2.10/24"]
+  scm_authorized_subnet_ids              = [module.subnet.subnet_ids["subnet2"]] # Use correct subnet reference
+  scm_authorized_service_tags            = ["AppService"]
   # Site config
   site_config = {
     container_registry_use_managed_identity = true
   }
-
   # Application Insights/AppSettings
   app_settings = {
     ApplicationInsightsAgent_EXTENSION_VERSION = "~3"
@@ -199,7 +190,6 @@ module "windows-web-app" {
   app_insights_id                  = module.application-insights.app_insights_id
   app_insights_instrumentation_key = module.application-insights.instrumentation_key
   app_insights_connection_string   = module.application-insights.connection_string
-
   # App Service logs
   app_service_logs = {
     detailed_error_messages = false

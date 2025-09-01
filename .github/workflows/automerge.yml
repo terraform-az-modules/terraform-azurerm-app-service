@@ -7,4 +7,4 @@ jobs:
     secrets:
       GITHUB: ${{ secrets.GITHUB }}
     with:
-      tfcheck: 'examples/complete/**'
+      tfcheck: 'examples/linux_web_app/**'

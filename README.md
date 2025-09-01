@@ -65,25 +65,84 @@ This table contains both Prerequisites and Providers:
 
 ## Examples
 
-**IMPORTANT:** Since the master branch used in source varies based on new modifications, we recommend using the [release versions](https://github.com/terraform-az-modules/terraform-module-template/releases).
+**IMPORTANT:** Since the master branch used in source varies based on new modifications, we recommend using the [release versions](https://github.com/terraform-az-modules/terraform-azure-app-service/releases).
 
 📌 For additional usage examples, check the complete list under [`examples/`](./examples) directory.
-
 
 
 ## Inputs and Outputs
 
 ### Inputs
 
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| label_order | Label order, e.g. `name`,`application`,`centralus`. | `list(any)` | <pre>["name","environment",  "location"]</pre> | no |
+
+| Name                         | Description                                                                                                                      | Type               | Default                                                                                   | Required |
+|------------------------------|----------------------------------------------------------------------------------------------------------------------------------|--------------------|-------------------------------------------------------------------------------------------|:--------:|
+| acr_id                       | Container registry id to give access to pull images                                                                             | `string`           | `null`                                                                                    | no       |
+| app_insights_connection_string | Connection string of App Insights                                                                                               | `string`           | `null`                                                                                    | no       |
+| app_insights_id              | ID of the existing Application Insights resource to use                                                                          | `string`           | `null`                                                                                    | no       |
+| app_insights_instrumentation_key | Instrumentation key of Application Insights                                                                                  | `string`           | `null`                                                                                    | no       |
+| app_service_environment_id   | The ID of the App Service Environment to create this Service Plan in. Requires an Isolated SKU. Use one of I1, I2, I3 for azurerm_app_service_environment, or I1v2, I2v2, I3v2 for azurerm_app_service_environment_v3 | `string`           | `null`                                                                                    | no       |
+| app_service_logs             | Configuration of the App Service and App Service Slot logs. Documentation [here](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_web_app#logs) | `object`           | `null`                                                                                    | no       |
+| app_service_vnet_integration_subnet_id | Id of the subnet to associate with the app service                                                                           | `string`           | `null`                                                                                    | no       |
+| app_settings                 | Application settings for App Service. See documentation [https://www.terraform.io/docs/providers/azurerm/r/app_service.html#app_settings](https://www.terraform.io/docs/providers/azurerm/r/app_service.html#app_settings) | `map(string)`      | `{}`                                                                                      | no       |
+| application_insights_enabled | Enable Application Insights integration                                                                                          | `bool`             | `true`                                                                                    | no       |
+| auth_settings               | Authentication settings. Issuer URL is generated thanks to the tenant ID. For active_directory block, the allowed_audiences list is filled with a value generated with the name of the App Service. See [https://www.terraform.io/docs/providers/azurerm/r/app_service.html#auth_settings](https://www.terraform.io/docs/providers/azurerm/r/app_service.html#auth_settings) | `any`              | `{}`                                                                                      | no       |
+| auth_settings_v2            | Authentication settings V2. See [https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_web_app#auth_settings_v2](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_web_app#auth_settings_v2) | `any`              | `{}`                                                                                      | no       |
+| client_affinity_enabled     | Client affinity activation for App Service. See documentation [https://www.terraform.io/docs/providers/azurerm/r/app_service.html#client_affinity_enabled](https://www.terraform.io/docs/providers/azurerm/r/app_service.html#client_affinity_enabled) | `bool`             | `false`                                                                                   | no       |
+| connection_strings          | Connection strings for App Service. See documentation [https://www.terraform.io/docs/providers/azurerm/r/app_service.html#connection_string](https://www.terraform.io/docs/providers/azurerm/r/app_service.html#connection_string) | `list(map(string))` | `[]`                                                                                     | no       |
+| custom_name                 | Override default naming convention                                                                                               | `string`           | `null`                                                                                    | no       |
+| deployment_mode             | Specifies how the infrastructure/resource is deployed                                                                            | `string`           | `"terraform"`                                                                             | no       |
+| enable                     | Set to false to prevent the module from creating any resources                                                                   | `bool`             | `true`                                                                                    | no       |
+| enable_asp                 | Enable creation of the App Service Plan                                                                                          | `bool`             | `true`                                                                                    | no       |
+| enable_private_endpoint    | enable or disable private endpoint to storage account                                                                            | `bool`             | `false`                                                                                   | no       |
+| environment                | Environment (e.g. `prod`, `dev`, `staging`)                                                                                      | `string`           | `null`                                                                                    | no       |
+| extra_tags                 | Variable to pass extra tags                                                                                                       | `map(string)`      | `null`                                                                                    | no       |
+| https_only                 | HTTPS restriction for App Service. See documentation [https://www.terraform.io/docs/providers/azurerm/r/app_service.html#https_only](https://www.terraform.io/docs/providers/azurerm/r/app_service.html#https_only) | `bool`             | `false`                                                                                   | no       |
+| identity                   | Map with identity block information                                                                                              | `object`           | `{ type = "SystemAssigned", identity_ids = [] }`                                         | no       |
+| ip_restriction_default_action | The default action for traffic that does not match any IP restriction rule. Value must be "Allow" or "Deny".                     | `string`           | `"Deny"`                                                                                  | no       |
+| ip_restrictions            | A list of IP restrictions to be configured for this web app                                                                      | `list(object)`     | `[]`                                                                                     | no       |
+| label_order                | The order of labels used to construct resource names or tags. If not specified, defaults to ['name', 'environment', 'location']   | `list(string)`     | `["name", "environment", "location"]`                                                    | no       |
+| linux_app_stack            | Linux app service stack and Docker configuration                                                                                  | `object`           | `null`                                                                                    | no       |
+| linux_sku_name             | SKU name for Linux App Service Plan (e.g. B1, P1V2)                                                                              | `string`           | `"B1"`                                                                                   | no       |
+| linux_web_app_worker_count | Linux Web App worker instance count                                                                                              | `number`           | `1`                                                                                      | no       |
+| location                   | The location/region where the virtual network is created. Changing this forces a new resource to be created                        | `string`           | `null`                                                                                   | no       |
+| managedby                  | ManagedBy, eg 'terraform-az-modules'                                                                                             | `string`           | `"terraform-az-modules"`                                                                 | no       |
+| maximum_elastic_worker_count | The maximum number of workers to use in an Elastic SKU Plan. Cannot be set unless using an Elastic SKU.                           | `number`           | `null`                                                                                   | no       |
+| mount_points               | Storage Account mount points. Name is generated if not set and default type is AzureFiles. See [https://www.terraform.io/docs/providers/azurerm/r/app_service.html#storage_account](https://www.terraform.io/docs/providers/azurerm/r/app_service.html#storage_account) | `list(map(string))` | `[]`                                                                                     | no       |
+| name                       | Name  (e.g. `app` or `cluster`)                                                                                                  | `string`           | `null`                                                                                   | no       |
+| os_type                    | The O/S type for the App Services to be hosted in this plan. Possible values include `Windows`, `Linux`, and `WindowsContainer`.   | `string`           | n/a                                                                                     | yes      |
+| per_site_scaling_enabled   | Should Per Site Scaling be enabled.                                                                                              | `bool`             | `false`                                                                                  | no       |
+| private_dns_zone_ids       | Id of the private DNS Zone                                                                                                       | `string`           | `null`                                                                                   | no       |
+| private_endpoint_subnet_id | Subnet ID for private endpoint                                                                                                   | `string`           | `null`                                                                                   | no       |
+| public_network_access_enabled | Whether enable public access for the App Service.                                                                              | `bool`             | `true`                                                                                   | no       |
+| read_permissions           | Read permissions for telemetry                                                                                                   | `list(string)`     | `["aggregate", "api", "draft", "extendqueries", "search"]`                               | no       |
+| repository                 | Terraform current module repo                                                                                                    | `string`           | `"https://github.com/terraform-az-modules/terraform-azure-vnet"`                         | no       |
+| resource_group_name        | A container that holds related resources for an Azure solution                                                                  | `string`           | `""`                                                                                    | no       |
+| resource_position_prefix   | Controls the placement of the resource type keyword (e.g., "vnet", "ddospp") in the resource name.                             | `bool`             | `true`                                                                                   | no       |
+| scm_authorized_ips         | SCM IPs restriction for App Service. See documentation [https://www.terraform.io/docs/providers/azurerm/r/app_service.html#scm_ip_restriction](https://www.terraform.io/docs/providers/azurerm/r/app_service.html#scm_ip_restriction) | `list(string)`     | `[]`                                                                                     | no       |
+| scm_authorized_service_tags | SCM Service Tags restriction for App Service. See documentation [https://www.terraform.io/docs/providers/azurerm/r/app_service.html#scm_ip_restriction](https://www.terraform.io/docs/providers/azurerm/r/app_service.html#scm_ip_restriction) | `list(string)`     | `[]`                                                                                     | no       |
+| scm_authorized_subnet_ids  | SCM subnets restriction for App Service. See documentation [https://www.terraform.io/docs/providers/azurerm/r/app_service.html#scm_ip_restriction](https://www.terraform.io/docs/providers/azurerm/r/app_service.html#scm_ip_restriction) | `list(string)`     | `[]`                                                                                     | no       |
+| scm_ip_restriction_headers | IPs restriction headers for App Service. See documentation [https://www.terraform.io/docs/providers/azurerm/r/app_service.html#headers](https://www.terraform.io/docs/providers/azurerm/r/app_service.html#headers) | `map(list(string))` | `null`                                                                                   | no       |
+| site_config                | Site config for App Service. See documentation [https://www.terraform.io/docs/providers/azurerm/r/app_service.html#site_config](https://www.terraform.io/docs/providers/azurerm/r/app_service.html#site_config). IP restriction attribute is no more managed in this block. | `any`              | `{}`                                                                                     | no       |
+| staging_slot_custom_app_settings | Override staging slot with custom app settings                                                                           | `map(string)`      | `null`                                                                                   | no       |
+| windows_app_stack          | Windows app service stack and Docker configuration                                                                             | `object`           | `null`                                                                                   | no       |
+| windows_sku_name           | SKU name for Windows App Service Plan (e.g. S1, P1V2)                                                                         | `string`           | `"S1"`                                                                                   | no       |
+| windows_web_app_worker_count | Windows Web App worker instance count                                                                                        | `number`           | `1`                                                                                      | no       |
+| worker_count               | The number of Workers (instances) to be allocated                                                                             | `number`           | `1`                                                                                      | no       |
 
 ### Outputs
 
-| Name | Description |
-|------|-------------|
-| label_order | Label order, e.g. `name`,`application`,`centralus`. |
+
+| Name                           | Description                                  |
+|--------------------------------|----------------------------------------------|
+| app_service_default_site_hostname | The Default Hostname associated with the App Service |
+| app_service_id                  | Id of the App Service                        |
+| app_service_name                | Name of the App Service                      |
+| app_service_outbound_ip_addresses | Outbound IP addresses of the App Service     |
+| app_service_possible_outbound_ip_addresses | Possible outbound IP addresses of the App Service |
+| app_service_site_credential     | Site credential block of the App Service    |
+| linux_identity                 | Managed identity info for Linux web app (empty if not created) |
+| windows_identity               | Managed identity info for Windows web app (empty if not created) |
 
 
 
@@ -131,11 +190,10 @@ Big thanks to our contributors for elevating our project with their dedication a
 ## Feedback 
 Spot a bug or have thoughts to share with us? Let's squash it together! Log it in our [issue tracker](https://github.com/terraform-az-modules/terraform-azure-module-template/issues), feel free to drop us an email at [hello@clouddrove.com](hello@clouddrove.com)).
 
-Show some love with a ★ on [our GitHub](https://github.com/terraform-az-modules/terraform-azure-module-template)!  if our work has brightened your day! – your feedback fuels our journey!
+Show some love with a ★ on [our GitHub](https://github.com/terraform-az-modules/terraform-azure-app-service)!  if our work has brightened your day! – your feedback fuels our journey!
 
 
 ## :rocket: Our Accomplishment
-
 We have [*50+ Azure Terraform modules*][terraform_modules] 🙌. You could consider them finished, but, with enthusiasts like yourself, we are able to ever improve them, so we call our status - improvement in progress.
 
 - [Terraform Module Registry:](https://registry.terraform.io/namespaces/clouddrove) Discover our Terraform modules here.

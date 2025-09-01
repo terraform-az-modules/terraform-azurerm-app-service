@@ -5,8 +5,9 @@ locals {
   name = var.custom_name != null ? var.custom_name : module.labels.id
 
   default_site_config = {
-    always_on               = "true"
-    scm_minimum_tls_version = "1.2"
+    always_on                               = "true"
+    scm_minimum_tls_version                 = "1.2"
+    container_registry_use_managed_identity = false
   }
 
   site_config = merge(local.default_site_config, var.site_config)

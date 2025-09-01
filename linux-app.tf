@@ -9,13 +9,12 @@ resource "azurerm_linux_web_app" "main" {
   service_plan_id               = azurerm_service_plan.main[0].id
   public_network_access_enabled = var.public_network_access_enabled
   virtual_network_subnet_id     = var.app_service_vnet_integration_subnet_id
-
   dynamic "site_config" {
     for_each = [local.site_config]
     content {
       linux_fx_version                              = lookup(site_config.value, "linux_fx_version", null)
       container_registry_managed_identity_client_id = lookup(site_config.value, "container_registry_managed_identity_client_id", null)
-      container_registry_use_managed_identity       = lookup(site_config.value, "container_registry_use_managed_identity", null)
+      container_registry_use_managed_identity       = lookup(site_config.value, "container_registry_use_managed_identity", false)
       always_on                                     = lookup(site_config.value, "always_on", null)
       app_command_line                              = lookup(site_config.value, "app_command_line", null)
       default_documents                             = lookup(site_config.value, "default_documents", null)
@@ -41,7 +40,7 @@ resource "azurerm_linux_web_app" "main" {
           service_tag               = ip_restriction.value.service_tag
           priority                  = ip_restriction.value.priority
           action                    = ip_restriction.value.action
-          headers                   = ip_restriction.value.headers #ADDED
+          headers                   = ip_restriction.value.headers
         }
       }
 
