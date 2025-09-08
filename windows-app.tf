@@ -1,11 +1,14 @@
 resource "azurerm_windows_web_app" "main" {
-  count                         = var.enable && var.os_type == "Windows" ? 1 : 0
-  name                          = var.resource_position_prefix ? format("app-%s", local.name) : format("%s-app", local.name)
-  resource_group_name           = var.resource_group_name
-  location                      = var.location
-  service_plan_id               = azurerm_service_plan.main[0].id
-  public_network_access_enabled = var.public_network_access_enabled
-  virtual_network_subnet_id     = var.app_service_vnet_integration_subnet_id
+  count                              = var.enable && var.os_type == "Windows" ? 1 : 0
+  name                               = var.resource_position_prefix ? format("app-%s", local.name) : format("%s-app", local.name)
+  resource_group_name                = var.resource_group_name
+  location                           = var.location
+  service_plan_id                    = local.effective_service_plan_id
+  public_network_access_enabled      = var.public_network_access_enabled
+  virtual_network_subnet_id          = var.app_service_vnet_integration_subnet_id
+  client_certificate_enabled         = lookup(var.site_config, "client_certificate_enabled", false)
+  client_certificate_mode            = lookup(var.site_config, "client_certificate_mode", "Required")
+  client_certificate_exclusion_paths = lookup(var.site_config, "client_certificate_exclusion_paths", null)
 
   dynamic "site_config" {
     for_each = [local.site_config]
@@ -13,22 +16,21 @@ resource "azurerm_windows_web_app" "main" {
       windows_fx_version                            = lookup(site_config.value, "windows_fx_version", null)
       container_registry_managed_identity_client_id = lookup(site_config.value, "container_registry_managed_identity_client_id", null)
       container_registry_use_managed_identity       = lookup(site_config.value, "container_registry_use_managed_identity", false)
-
-      always_on                     = lookup(site_config.value, "always_on", null)
-      app_command_line              = lookup(site_config.value, "app_command_line", null)
-      default_documents             = lookup(site_config.value, "default_documents", null)
-      ftps_state                    = lookup(site_config.value, "ftps_state", "FtpsOnly")
-      health_check_path             = lookup(site_config.value, "health_check_path", null)
-      http2_enabled                 = lookup(site_config.value, "http2_enabled", null)
-      local_mysql_enabled           = lookup(site_config.value, "local_mysql_enabled", false)
-      managed_pipeline_mode         = lookup(site_config.value, "managed_pipeline_mode", null)
-      minimum_tls_version           = lookup(site_config.value, "minimum_tls_version", lookup(site_config.value, "min_tls_version", "1.2"))
-      remote_debugging_enabled      = lookup(site_config.value, "remote_debugging_enabled", false)
-      remote_debugging_version      = lookup(site_config.value, "remote_debugging_version", null)
-      use_32_bit_worker             = lookup(site_config.value, "use_32_bit_worker", false)
-      websockets_enabled            = lookup(site_config.value, "websockets_enabled", false)
-      worker_count                  = var.windows_web_app_worker_count
-      ip_restriction_default_action = var.ip_restriction_default_action
+      always_on                                     = lookup(site_config.value, "always_on", null)
+      app_command_line                              = lookup(site_config.value, "app_command_line", null)
+      default_documents                             = lookup(site_config.value, "default_documents", null)
+      ftps_state                                    = lookup(site_config.value, "ftps_state", "FtpsOnly")
+      health_check_path                             = lookup(site_config.value, "health_check_path", null)
+      http2_enabled                                 = lookup(site_config.value, "http2_enabled", false)
+      local_mysql_enabled                           = lookup(site_config.value, "local_mysql_enabled", false)
+      managed_pipeline_mode                         = lookup(site_config.value, "managed_pipeline_mode", null)
+      minimum_tls_version                           = lookup(site_config.value, "minimum_tls_version", lookup(site_config.value, "min_tls_version", "1.2"))
+      remote_debugging_enabled                      = lookup(site_config.value, "remote_debugging_enabled", false)
+      remote_debugging_version                      = lookup(site_config.value, "remote_debugging_version", null)
+      use_32_bit_worker                             = lookup(site_config.value, "use_32_bit_worker", false)
+      websockets_enabled                            = lookup(site_config.value, "websockets_enabled", false)
+      worker_count                                  = var.windows_web_app_worker_count
+      ip_restriction_default_action                 = var.ip_restriction_default_action
 
       dynamic "ip_restriction" {
         for_each = var.ip_restrictions

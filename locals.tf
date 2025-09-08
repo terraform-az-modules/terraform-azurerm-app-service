@@ -10,6 +10,8 @@ locals {
     container_registry_use_managed_identity = false
   }
 
+  effective_service_plan_id = var.existing_service_plan_id != null ? var.existing_service_plan_id : azurerm_service_plan.main[0].id
+
   site_config = merge(local.default_site_config, var.site_config)
 
   default_ip_restrictions_headers = {

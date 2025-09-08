@@ -2,13 +2,17 @@
 ## Linux Web App
 ##-----------------------------------------------------------------------------
 resource "azurerm_linux_web_app" "main" {
-  count                         = var.enable && var.os_type == "Linux" ? 1 : 0
-  name                          = var.resource_position_prefix ? format("app-%s", local.name) : format("%s-app", local.name)
-  resource_group_name           = var.resource_group_name
-  location                      = var.location
-  service_plan_id               = azurerm_service_plan.main[0].id
-  public_network_access_enabled = var.public_network_access_enabled
-  virtual_network_subnet_id     = var.app_service_vnet_integration_subnet_id
+  count                              = var.enable && var.os_type == "Linux" ? 1 : 0
+  name                               = var.resource_position_prefix ? format("app-%s", local.name) : format("%s-app", local.name)
+  resource_group_name                = var.resource_group_name
+  location                           = var.location
+  service_plan_id                    = local.effective_service_plan_id
+  public_network_access_enabled      = var.public_network_access_enabled
+  virtual_network_subnet_id          = var.app_service_vnet_integration_subnet_id
+  client_certificate_enabled         = lookup(var.site_config, "client_certificate_enabled", false)
+  client_certificate_mode            = lookup(var.site_config, "client_certificate_mode", "Required")
+  client_certificate_exclusion_paths = lookup(var.site_config, "client_certificate_exclusion_paths", null)
+
   dynamic "site_config" {
     for_each = [local.site_config]
     content {
@@ -20,7 +24,7 @@ resource "azurerm_linux_web_app" "main" {
       default_documents                             = lookup(site_config.value, "default_documents", null)
       ftps_state                                    = lookup(site_config.value, "ftps_state", "FtpsOnly")
       health_check_path                             = lookup(site_config.value, "health_check_path", null)
-      http2_enabled                                 = lookup(site_config.value, "http2_enabled", null)
+      http2_enabled                                 = lookup(site_config.value, "http2_enabled", false)
       local_mysql_enabled                           = lookup(site_config.value, "local_mysql_enabled", false)
       managed_pipeline_mode                         = lookup(site_config.value, "managed_pipeline_mode", null)
       minimum_tls_version                           = lookup(site_config.value, "minimum_tls_version", lookup(site_config.value, "min_tls_version", "1.2"))

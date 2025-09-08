@@ -175,14 +175,19 @@ module "windows-web-app" {
   enable_private_endpoint                = true
   app_service_vnet_integration_subnet_id = module.subnet.subnet_ids["subnet2"]                         # Delegated subnet for App Service integration
   private_dns_zone_ids                   = module.private-dns-zone.private_dns_zone_ids.azure_web_apps # Reference the private DNS zone IDs for web apps
-  public_network_access_enabled          = true
+  public_network_access_enabled          = false
   scm_authorized_ips                     = ["10.0.2.10/24"]
   scm_authorized_subnet_ids              = [module.subnet.subnet_ids["subnet2"]] # Use correct subnet reference
   scm_authorized_service_tags            = ["AppService"]
   # Site config
   site_config = {
-    container_registry_use_managed_identity = true
+    #Checkov suggested 
+    minimum_tls_version      = "1.2"
+    remote_debugging_enabled = true
+    http2_enabled            = true
+    ftps_state               = "FtpsOnly"
   }
+  https_only = true
   # Application Insights/AppSettings
   app_settings = {
     ApplicationInsightsAgent_EXTENSION_VERSION = "~3"

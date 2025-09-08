@@ -148,6 +148,22 @@ variable "per_site_scaling_enabled" {
   description = "Should Per Site Scaling be enabled."
 }
 
+variable "existing_service_plan_id" {
+  type        = string
+  default     = null
+  description = "If provided, use this existing Service Plan ID instead of creating a new one."
+}
+
+variable "zone_balancing_enabled" {
+  type    = bool
+  default = false
+
+  validation {
+    condition     = !var.zone_balancing_enabled || (var.worker_count > 1)
+    error_message = "zone_balancing_enabled can only be true when worker_count > 1."
+  }
+}
+
 ##-----------------------------------------------------------------------------
 ## App Service
 ##-----------------------------------------------------------------------------

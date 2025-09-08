@@ -174,8 +174,7 @@ module "linux-web-app" {
   enable_private_endpoint                = true
   app_service_vnet_integration_subnet_id = module.subnet.subnet_ids["subnet2"]                         # Delegated subnet for App Service integration
   private_dns_zone_ids                   = module.private-dns-zone.private_dns_zone_ids.azure_web_apps # Reference the private DNS zone IDs for web apps
-  public_network_access_enabled          = true
-
+  public_network_access_enabled          = false                                                       # Checkov suggested enhancement
   ip_restrictions = [
     {
       name                      = "AllowDevSubnet"
@@ -190,6 +189,14 @@ module "linux-web-app" {
       action      = "Allow"
     }
   ]
+  #Checkov suggested 
+  https_only = true
+  site_config = {
+    minimum_tls_version      = "1.2"
+    remote_debugging_enabled = true
+    http2_enabled            = true
+    ftps_state               = "FtpsOnly"
+  }
   # Application Insights/AppSettings
   app_settings = {
     ApplicationInsightsAgent_EXTENSION_VERSION = "~3"

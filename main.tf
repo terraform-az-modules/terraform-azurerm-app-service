@@ -19,7 +19,7 @@ module "labels" {
 ## App Service Plan
 ##-----------------------------------------------------------------------------
 resource "azurerm_service_plan" "main" {
-  count               = var.enable && var.enable_asp ? 1 : 0
+  count               = var.enable && var.enable_asp && var.existing_service_plan_id == null ? 1 : 0
   name                = var.resource_position_prefix ? format("asp-%s", local.name) : format("%s-asp", local.name)
   resource_group_name = var.resource_group_name
   location            = var.location
@@ -34,6 +34,7 @@ resource "azurerm_service_plan" "main" {
   maximum_elastic_worker_count = var.maximum_elastic_worker_count
   app_service_environment_id   = var.app_service_environment_id
   per_site_scaling_enabled     = var.per_site_scaling_enabled
+  zone_balancing_enabled       = var.zone_balancing_enabled
   tags                         = module.labels.tags
 }
 

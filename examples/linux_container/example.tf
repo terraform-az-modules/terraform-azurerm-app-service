@@ -179,11 +179,16 @@ module "linux-web-app" {
   enable_private_endpoint                = true
   app_service_vnet_integration_subnet_id = module.subnet.subnet_ids["subnet2"]                         # Delegated subnet for App Service integration
   private_dns_zone_ids                   = module.private-dns-zone.private_dns_zone_ids.azure_web_apps # Reference the private DNS zone IDs for web apps
-  public_network_access_enabled          = true
+  public_network_access_enabled          = false
   ip_restriction_default_action          = "Allow"
   # Site config
   site_config = {
     container_registry_use_managed_identity = true # Set to true if using managed identity for ACR access
+    #Checkov suggested 
+    minimum_tls_version      = "1.2"
+    remote_debugging_enabled = true
+    http2_enabled            = true
+    ftps_state               = "FtpsOnly"
   }
   # Application Insights/AppSettings
   app_settings = {
