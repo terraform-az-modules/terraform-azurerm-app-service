@@ -183,7 +183,7 @@ module "windows-web-app" {
   site_config = {
     #Checkov suggested 
     minimum_tls_version      = "1.2"
-    remote_debugging_enabled = true
+    remote_debugging_enabled = false
     http2_enabled            = true
     ftps_state               = "FtpsOnly"
   }

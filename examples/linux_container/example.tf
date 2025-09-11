@@ -186,10 +186,11 @@ module "linux-web-app" {
     container_registry_use_managed_identity = true # Set to true if using managed identity for ACR access
     #Checkov suggested 
     minimum_tls_version      = "1.2"
-    remote_debugging_enabled = true
+    remote_debugging_enabled = false
     http2_enabled            = true
     ftps_state               = "FtpsOnly"
   }
+  https_only = true
   # Application Insights/AppSettings
   app_settings = {
     ApplicationInsightsAgent_EXTENSION_VERSION = "~3"

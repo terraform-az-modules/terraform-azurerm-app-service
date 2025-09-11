@@ -193,7 +193,7 @@ module "linux-web-app" {
   https_only = true
   site_config = {
     minimum_tls_version      = "1.2"
-    remote_debugging_enabled = true
+    remote_debugging_enabled = false
     http2_enabled            = true
     ftps_state               = "FtpsOnly"
   }
