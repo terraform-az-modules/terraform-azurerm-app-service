@@ -29,8 +29,8 @@ resource "azurerm_windows_web_app" "main" {
       remote_debugging_version                      = lookup(site_config.value, "remote_debugging_version", null)
       use_32_bit_worker                             = lookup(site_config.value, "use_32_bit_worker", false)
       websockets_enabled                            = lookup(site_config.value, "websockets_enabled", false)
-      worker_count                                  = var.windows_web_app_worker_count
-      ip_restriction_default_action                 = var.ip_restriction_default_action
+      worker_count                                  = lookup(site_config.value, "worker_count", var.windows_web_app_worker_count)
+      ip_restriction_default_action                 = lookup(site_config.value, "ip_restriction_default_action", var.ip_restriction_default_action)
 
       dynamic "ip_restriction" {
         for_each = var.ip_restrictions
@@ -99,6 +99,10 @@ resource "azurerm_windows_web_app" "main" {
     }
   }
 
+  # NOTE: auth_settings is the legacy authentication configuration (v1).
+  # For new implementations, prefer auth_settings_v2 which offers enhanced features,
+  # better provider support, and more granular controls.
+  # Both blocks are maintained for backward compatibility.
   dynamic "auth_settings" {
     for_each = local.auth_settings.enabled ? ["enabled"] : []
     content {
@@ -108,6 +112,9 @@ resource "azurerm_windows_web_app" "main" {
       unauthenticated_client_action  = local.auth_settings.unauthenticated_client_action
       default_provider               = local.auth_settings.default_provider
       allowed_external_redirect_urls = local.auth_settings.allowed_external_redirect_urls
+      additional_login_parameters    = lookup(local.auth_settings, "additional_login_parameters", null)
+      runtime_version                = lookup(local.auth_settings, "runtime_version", null)
+      token_refresh_extension_hours  = lookup(local.auth_settings, "token_refresh_extension_hours", 72)
 
       dynamic "active_directory" {
         for_each = local.auth_settings_active_directory.client_id == null ? [] : [local.auth_settings_active_directory]
@@ -117,22 +124,64 @@ resource "azurerm_windows_web_app" "main" {
           allowed_audiences = concat(formatlist("https://%s", [format("%s.azurewebsites.net", format("%s-app", module.labels.id))]), local.auth_settings_active_directory.allowed_audiences)
         }
       }
+
+      dynamic "facebook" {
+        for_each = lookup(local.auth_settings, "facebook", null) != null ? [local.auth_settings.facebook] : []
+        content {
+          app_id     = lookup(facebook.value, "app_id", null)
+          app_secret = lookup(facebook.value, "app_secret", null)
+        }
+      }
+
+      dynamic "github" {
+        for_each = lookup(local.auth_settings, "github", null) != null ? [local.auth_settings.github] : []
+        content {
+          client_id     = lookup(github.value, "client_id", null)
+          client_secret = lookup(github.value, "client_secret", null)
+        }
+      }
+
+      dynamic "google" {
+        for_each = lookup(local.auth_settings, "google", null) != null ? [local.auth_settings.google] : []
+        content {
+          client_id     = lookup(google.value, "client_id", null)
+          client_secret = lookup(google.value, "client_secret", null)
+        }
+      }
+
+      dynamic "microsoft" {
+        for_each = lookup(local.auth_settings, "microsoft", null) != null ? [local.auth_settings.microsoft] : []
+        content {
+          client_id     = lookup(microsoft.value, "client_id", null)
+          client_secret = lookup(microsoft.value, "client_secret", null)
+        }
+      }
+
+      dynamic "twitter" {
+        for_each = lookup(local.auth_settings, "twitter", null) != null ? [local.auth_settings.twitter] : []
+        content {
+          consumer_key    = lookup(twitter.value, "consumer_key", null)
+          consumer_secret = lookup(twitter.value, "consumer_secret", null)
+        }
+      }
     }
   }
 
+  # RECOMMENDED: auth_settings_v2 is the modern authentication configuration
+  # with comprehensive provider support and advanced features.
   dynamic "auth_settings_v2" {
     for_each = lookup(var.auth_settings_v2, "auth_enabled", false) ? [var.auth_settings_v2] : []
     content {
       auth_enabled                            = lookup(auth_settings_v2.value, "auth_enabled", false)
       runtime_version                         = lookup(auth_settings_v2.value, "runtime_version", "~1")
       config_file_path                        = lookup(auth_settings_v2.value, "config_file_path", null)
-      require_authentication                  = lookup(auth_settings_v2.value, "require_authentication", null)
+      require_authentication                  = lookup(auth_settings_v2.value, "require_authentication", false)
       unauthenticated_action                  = lookup(auth_settings_v2.value, "unauthenticated_action", "RedirectToLoginPage")
       default_provider                        = lookup(auth_settings_v2.value, "default_provider", "azureactivedirectory")
       excluded_paths                          = lookup(auth_settings_v2.value, "excluded_paths", null)
       require_https                           = lookup(auth_settings_v2.value, "require_https", true)
       http_route_api_prefix                   = lookup(auth_settings_v2.value, "http_route_api_prefix", "/.auth")
-      forward_proxy_convention                = lookup(auth_settings_v2.value, "forward_proxy_convention", "ForwardProxyConventionNoProxy")
+      forward_proxy_convention                = lookup(auth_settings_v2.value, "forward_proxy_convention", "NoProxy")
       forward_proxy_custom_host_header_name   = lookup(auth_settings_v2.value, "forward_proxy_custom_host_header_name", null)
       forward_proxy_custom_scheme_header_name = lookup(auth_settings_v2.value, "forward_proxy_custom_scheme_header_name", null)
 

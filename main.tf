@@ -19,7 +19,7 @@ module "labels" {
 ## App Service Plan
 ##-----------------------------------------------------------------------------
 resource "azurerm_service_plan" "main" {
-  count               = var.enable && var.enable_asp && var.existing_service_plan_id == null ? 1 : 0
+  count               = var.enable && var.existing_service_plan_id == null ? 1 : 0
   name                = var.resource_position_prefix ? format("asp-%s", local.name) : format("%s-asp", local.name)
   resource_group_name = var.resource_group_name
   location            = var.location

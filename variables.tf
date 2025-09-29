@@ -165,7 +165,7 @@ variable "zone_balancing_enabled" {
 }
 
 ##-----------------------------------------------------------------------------
-## App Service
+##  Linux App Service
 ##-----------------------------------------------------------------------------
 variable "public_network_access_enabled" {
   type        = bool

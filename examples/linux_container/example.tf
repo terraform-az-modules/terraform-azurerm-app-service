@@ -104,16 +104,13 @@ module "subnet-ep" {
 ## Log Analytics
 ##-----------------------------------------------------------------------------
 module "log-analytics" {
-  source                           = "clouddrove/log-analytics/azure"
-  version                          = "2.0.0"
-  name                             = "core"
-  environment                      = "qa"
-  label_order                      = ["name", "environment"]
-  create_log_analytics_workspace   = true
-  log_analytics_workspace_sku      = "PerGB2018"
-  log_analytics_workspace_id       = module.log-analytics.workspace_id
-  resource_group_name              = module.resource_group.resource_group_name
-  log_analytics_workspace_location = module.resource_group.resource_group_location
+  source              = "terraform-az-modules/log-analytics/azure"
+  version             = "1.0.0"
+  name                = "core"
+  environment         = "qa"
+  label_order         = ["name", "environment", "location"]
+  resource_group_name = module.resource_group.resource_group_name
+  location            = module.resource_group.resource_group_location
 }
 
 ##-----------------------------------------------------------------------------
@@ -165,6 +162,9 @@ module "linux-web-app" {
   os_type             = "Linux"
   linux_sku_name      = "B1"
   linux_app_stack = {
+    # For built-in stacks, use the following structure:
+    # type           = "dotnet" # change to "node", "java", etc, as needed
+    # dotnet_version = "8.0"
     docker = {
       enabled           = true
       image             = "nginx:latest"
