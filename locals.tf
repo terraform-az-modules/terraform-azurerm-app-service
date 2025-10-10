@@ -14,6 +14,9 @@ locals {
 
   site_config = merge(local.default_site_config, var.site_config)
 
+  # Staging slot inherits from main site_config unless overridden
+  staging_slot_site_config = merge(local.site_config, var.staging_slot_site_config)
+
   default_ip_restrictions_headers = {
     x_azure_fdid      = null
     x_fd_health_probe = null

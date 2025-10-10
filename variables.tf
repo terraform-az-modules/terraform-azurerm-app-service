@@ -165,7 +165,7 @@ variable "zone_balancing_enabled" {
 }
 
 ##-----------------------------------------------------------------------------
-##  Linux App Service
+## App Service
 ##-----------------------------------------------------------------------------
 variable "public_network_access_enabled" {
   type        = bool
@@ -305,12 +305,6 @@ variable "windows_app_stack" {
   })
   default     = null
   description = "Windows app service stack and Docker configuration"
-}
-
-variable "staging_slot_custom_app_settings" {
-  type        = map(string)
-  default     = null
-  description = "Override staging slot with custom app settings"
 }
 
 variable "app_settings" {
@@ -455,4 +449,37 @@ variable "application_insights_enabled" {
   type        = bool
   default     = true
   description = "Enable Application Insights integration"
+}
+
+##-----------------------------------------------------------------------------
+## Application Insights
+##-----------------------------------------------------------------------------
+variable "enable_staging_slot" {
+  type        = bool
+  default     = false
+  description = "Enable staging slot for blue-green deployments"
+}
+
+variable "staging_slot_name" {
+  type        = string
+  default     = "staging"
+  description = "Name of the staging slot"
+}
+
+variable "staging_slot_public_access_enabled" {
+  type        = bool
+  default     = false
+  description = "Enable public access to staging slot"
+}
+
+variable "staging_slot_site_config" {
+  type        = any
+  default     = {}
+  description = "Site config overrides for staging slot"
+}
+
+variable "staging_slot_custom_app_settings" {
+  type        = map(string)
+  default     = null
+  description = "Custom app settings for staging slot (if different from production)"
 }

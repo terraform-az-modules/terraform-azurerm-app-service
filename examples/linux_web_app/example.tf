@@ -166,6 +166,16 @@ module "linux-web-app" {
       enabled = false
     }
   }
+
+  # Enable staging slot for blue-green deployment
+  enable_staging_slot = true
+  staging_slot_name   = "staging"
+
+  # Optional: staging-specific overrides
+  staging_slot_custom_app_settings = {
+    "ENVIRONMENT" = "staging"
+    "DEBUG_MODE"  = "true"
+  }
   # VNet and Private Endpoint Integration
   private_endpoint_subnet_id             = module.subnet-ep.subnet_ids["sub3"] # Use private endpoint subnet
   enable_private_endpoint                = true
