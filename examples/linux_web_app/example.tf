@@ -196,7 +196,7 @@ module "linux-web-app" {
       action      = "Allow"
     }
   ]
-  #Checkov suggested 
+  # Harden security by enforcing TLS 1.2, disabling remote debugging, enabling HTTP/2, and setting FTPS to required.
   https_only = true
   site_config = {
     minimum_tls_version      = "1.2"

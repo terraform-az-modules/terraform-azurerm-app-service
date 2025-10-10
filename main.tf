@@ -1,4 +1,3 @@
-
 ##-----------------------------------------------------------------------------
 ## Tagging Module – Applies standard tags to all resources
 ##-----------------------------------------------------------------------------
@@ -70,8 +69,8 @@ resource "azurerm_private_endpoint" "pep" {
 ## Telemetry / Application Insights API Key
 ##-----------------------------------------------------------------------------
 resource "azurerm_application_insights_api_key" "read_telemetry" {
+  count                   = var.enable && var.app_insights_id != null ? 1 : 0
   name                    = var.resource_position_prefix ? format("appi-api-key-%s", local.name) : format("%s-appi-api-key", local.name)
   application_insights_id = var.app_insights_id
   read_permissions        = var.read_permissions
 }
-

@@ -147,6 +147,31 @@ module "application-insights" {
   web_test_enable            = false
 }
 
+# ------------------------------------------------------------------------------
+# Azure Container Registry (ACR)
+# ------------------------------------------------------------------------------
+module "acr" {
+  source                     = "terraform-az-modules/acr/azure"
+  version                    = "1.0.0"
+  name                       = "core"
+  environment                = "dev"
+  label_order                = ["name", "environment", "location"]
+  resource_group_name        = module.resource_group.resource_group_name
+  location                   = module.resource_group.resource_group_location
+  depends_on                 = [module.private-dns-zone]
+  log_analytics_workspace_id = module.log-analytics.workspace_id
+  subnet_id                  = module.subnet.subnet_ids.subnet1
+  private_dns_zone_ids       = module.private-dns-zone.private_dns_zone_ids.container_registry
+  logs = [
+    {
+      category = "ContainerRegistryLoginEvents"
+    },
+    {
+      category = "ContainerRegistryRepositoryEvents"
+    }
+  ]
+}
+
 ##-----------------------------------------------------------------------------
 ## Linux Web App with Container
 ##-----------------------------------------------------------------------------
@@ -173,7 +198,7 @@ module "linux-web-app" {
       registry_password = ""
     }
   }
-  acr_id = "<acr_id>" # Set your ACR resource ID here
+  acr_id = module.acr.acr_id # Set your ACR resource ID here
   # VNet and Private Endpoint Integration
   private_endpoint_subnet_id             = module.subnet-ep.subnet_ids["sub3"] # Use private endpoint subnet here
   enable_private_endpoint                = true
@@ -184,7 +209,7 @@ module "linux-web-app" {
   # Site config
   site_config = {
     container_registry_use_managed_identity = true # Set to true if using managed identity for ACR access
-    #Checkov suggested 
+    # Harden security by enforcing TLS 1.2, disabling remote debugging, enabling HTTP/2, and setting FTPS to required.
     minimum_tls_version      = "1.2"
     remote_debugging_enabled = false
     http2_enabled            = true

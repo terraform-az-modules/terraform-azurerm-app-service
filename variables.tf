@@ -452,7 +452,7 @@ variable "application_insights_enabled" {
 }
 
 ##-----------------------------------------------------------------------------
-## Application Insights
+## Staging Slot
 ##-----------------------------------------------------------------------------
 variable "enable_staging_slot" {
   type        = bool

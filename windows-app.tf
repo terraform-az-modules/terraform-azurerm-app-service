@@ -58,7 +58,7 @@ resource "azurerm_windows_web_app" "main" {
         }
       }
       scm_minimum_tls_version     = lookup(site_config.value, "scm_minimum_tls_version", "1.2")
-      scm_use_main_ip_restriction = length(var.scm_authorized_ips) > 0 || var.scm_authorized_subnet_ids != null ? false : true
+      scm_use_main_ip_restriction = length(var.scm_authorized_ips) > 0 || length(var.scm_authorized_subnet_ids) > 0 ? false : true
 
       vnet_route_all_enabled = var.app_service_vnet_integration_subnet_id != null
 
@@ -88,7 +88,7 @@ resource "azurerm_windows_web_app" "main" {
     }
   }
 
-  app_settings = var.staging_slot_custom_app_settings == null ? local.app_settings : merge(local.default_app_settings, var.staging_slot_custom_app_settings)
+  app_settings = local.app_settings
 
   dynamic "connection_string" {
     for_each = var.connection_strings
@@ -121,7 +121,7 @@ resource "azurerm_windows_web_app" "main" {
         content {
           client_id         = local.auth_settings_active_directory.client_id
           client_secret     = local.auth_settings_active_directory.client_secret
-          allowed_audiences = concat(formatlist("https://%s", [format("%s.azurewebsites.net", format("%s-app", module.labels.id))]), local.auth_settings_active_directory.allowed_audiences)
+          allowed_audiences = concat(formatlist("https://%s", [format("%s.azurewebsites.net", var.resource_position_prefix ? format("app-%s", local.name) : format("%s-app", local.name))]), local.auth_settings_active_directory.allowed_audiences)
         }
       }
 
@@ -301,10 +301,10 @@ resource "azurerm_windows_web_app" "main" {
   https_only              = var.https_only
 
   dynamic "identity" {
-    for_each = var.identity[*]
+    for_each = [var.identity]
     content {
-      type         = var.identity.type
-      identity_ids = var.identity.identity_ids
+      type         = identity.value.type
+      identity_ids = identity.value.identity_ids
     }
   }
 

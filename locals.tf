@@ -29,7 +29,6 @@ locals {
     ip_address                = null
     virtual_network_subnet_id = subnet
     service_tag               = null
-    subnet_id                 = subnet
     priority                  = join("", [1, index(var.scm_authorized_subnet_ids, subnet)])
     action                    = "Allow"
     headers                   = local.scm_ip_restriction_headers
@@ -42,7 +41,6 @@ locals {
     ip_address                = cidr
     virtual_network_subnet_id = null
     service_tag               = null
-    subnet_id                 = null
     priority                  = join("", [1, index(var.scm_authorized_ips, cidr)])
     action                    = "Allow"
     headers                   = local.scm_ip_restriction_headers
@@ -53,7 +51,6 @@ locals {
     ip_address                = null
     virtual_network_subnet_id = null
     service_tag               = service_tag
-    subnet_id                 = null
     priority                  = join("", [1, index(var.scm_authorized_service_tags, service_tag)])
     action                    = "Allow"
     headers                   = local.scm_ip_restriction_headers
@@ -72,7 +69,8 @@ locals {
       client_secret     = null
       allowed_audiences = []
     },
-  local.auth_settings.active_directory == null ? local.auth_settings_ad_default : var.auth_settings.active_directory)
+  var.auth_settings.active_directory == null ? local.auth_settings_ad_default : var.auth_settings.active_directory)
+
   auth_settings_ad_default = {
     client_id         = null
     client_secret     = null
