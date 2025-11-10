@@ -75,6 +75,9 @@ resource "azurerm_application_insights_api_key" "read_telemetry" {
   read_permissions        = var.read_permissions
 }
 
+##-----------------------------------------------------------------------------
+## Telemetry / Application Insights API Key
+##-----------------------------------------------------------------------------
 resource "azurerm_monitor_diagnostic_setting" "web_app_diag" {
   count = var.enable && var.enable_diagnostic ? 1 : 0
   name  = var.resource_position_prefix ? format("diag-log-%s", local.name) : format("%s-diag-log", local.name)
