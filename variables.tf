@@ -483,3 +483,42 @@ variable "staging_slot_custom_app_settings" {
   default     = null
   description = "Custom app settings for staging slot (if different from production)"
 }
+
+variable "app_insights_api_key_enable" {
+  type        = bool
+  default     = true
+  description = "Enable creation of Application Insights API Key"
+}
+
+##-----------------------------------------------------------------------------
+## Diagnostic Setting Variables
+##-----------------------------------------------------------------------------
+variable "enable_diagnostic" {
+  description = "Enable diagnostic settings for Linux Web App"
+  type        = bool
+  default     = false
+}
+
+variable "storage_account_id" {
+  description = "Storage Account ID for diagnostic logs (optional)"
+  type        = string
+  default     = null
+}
+
+variable "log_analytics_workspace_id" {
+  description = "Log Analytics Workspace ID for diagnostic logs"
+  type        = string
+  default     = null
+}
+
+variable "log_enabled" {
+  description = "Enable log categories for diagnostic settings"
+  type        = bool
+  default     = true
+}
+
+variable "metric_enabled" {
+  description = "Enable metrics for diagnostic settings"
+  type        = bool
+  default     = true
+}

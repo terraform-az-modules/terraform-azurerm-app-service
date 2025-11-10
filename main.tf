@@ -2,8 +2,8 @@
 ## Tagging Module – Applies standard tags to all resources
 ##-----------------------------------------------------------------------------
 module "labels" {
-  source          = "terraform-az-modules/labels/azure"
-  version         = "1.0.0"
+  source          = "terraform-az-modules/tags/azurerm"
+  version         = "1.0.2"
   name            = var.custom_name == null ? var.name : var.custom_name
   location        = var.location
   environment     = var.environment
@@ -69,8 +69,37 @@ resource "azurerm_private_endpoint" "pep" {
 ## Telemetry / Application Insights API Key
 ##-----------------------------------------------------------------------------
 resource "azurerm_application_insights_api_key" "read_telemetry" {
-  count                   = var.enable && var.app_insights_id != null ? 1 : 0
+  count                   = var.enable && var.app_insights_api_key_enable ? 1 : 0
   name                    = var.resource_position_prefix ? format("appi-api-key-%s", local.name) : format("%s-appi-api-key", local.name)
   application_insights_id = var.app_insights_id
   read_permissions        = var.read_permissions
+}
+
+resource "azurerm_monitor_diagnostic_setting" "web_app_diag" {
+  count = var.enable && var.enable_diagnostic ? 1 : 0
+  name  = var.resource_position_prefix ? format("diag-log-%s", local.name) : format("%s-diag-log", local.name)
+
+  # Dynamically select target resource based on OS type
+  target_resource_id = var.os_type == "Linux" ? azurerm_linux_web_app.main[0].id : azurerm_windows_web_app.main[0].id
+
+  storage_account_id         = var.storage_account_id
+  log_analytics_workspace_id = var.log_analytics_workspace_id
+
+  dynamic "enabled_log" {
+    for_each = var.log_enabled ? ["allLogs"] : []
+    content {
+      category_group = enabled_log.value
+    }
+  }
+
+  dynamic "enabled_metric" {
+    for_each = var.metric_enabled ? ["AllMetrics"] : []
+    content {
+      category = enabled_metric.value
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [enabled_log, enabled_metric]
+  }
 }

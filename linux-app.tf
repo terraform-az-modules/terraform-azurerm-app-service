@@ -375,7 +375,10 @@ resource "azurerm_linux_web_app" "main" {
   lifecycle {
     ignore_changes = [
       site_config[0].cors,
-      site_config[0].ftps_state
+      site_config[0].ftps_state,
+      site_config[0].application_stack[0].docker_image_name,
+      site_config[0].application_stack[0].docker_registry_url,
+      app_settings
     ]
   }
 }
@@ -457,7 +460,10 @@ resource "azurerm_linux_web_app_slot" "staging" {
   lifecycle {
     ignore_changes = [
       site_config[0].cors,
-      site_config[0].ftps_state
+      site_config[0].ftps_state,
+      site_config[0].application_stack[0].docker_image_name,
+      site_config[0].application_stack[0].docker_registry_url,
+      app_settings
     ]
   }
 }

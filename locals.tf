@@ -69,7 +69,7 @@ locals {
       client_secret     = null
       allowed_audiences = []
     },
-  var.auth_settings.active_directory == null ? local.auth_settings_ad_default : var.auth_settings.active_directory)
+  try(var.auth_settings.active_directory == null, false) ? local.auth_settings_ad_default : try(var.auth_settings.active_directory == null, {}))
 
   auth_settings_ad_default = {
     client_id         = null
