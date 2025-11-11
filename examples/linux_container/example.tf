@@ -129,6 +129,10 @@ module "private-dns-zone" {
       resource_type = "azure_web_apps"
       vnet_ids      = [module.vnet.vnet_id]
     },
+    {
+      resource_type = "container_registry"
+      vnet_ids      = [module.vnet.vnet_id]
+    }
   ]
 }
 
@@ -153,7 +157,7 @@ module "application-insights" {
 # ------------------------------------------------------------------------------
 module "acr" {
   source                     = "terraform-az-modules/acr/azurerm"
-  version                    = "1.0.0"
+  version                    = "1.0.1"
   name                       = "core"
   environment                = "dev"
   label_order                = ["name", "environment", "location"]
@@ -163,6 +167,7 @@ module "acr" {
   log_analytics_workspace_id = module.log-analytics.workspace_id
   subnet_id                  = module.subnet.subnet_ids.subnet1
   private_dns_zone_ids       = module.private-dns-zone.private_dns_zone_ids.container_registry
+  encryption                 = false
   logs = [
     {
       category = "ContainerRegistryLoginEvents"
@@ -195,11 +200,11 @@ module "linux-web-app" {
       enabled           = true
       image             = "nginx:latest"
       registry_url      = "testcr10.azurecr.io" # null for public hub; set like "myregistry.azurecr.io" for ACR
-      registry_username = "testcr10"
+      registry_username = ""
       registry_password = ""
     }
   }
-  acr_id = module.acr.acr_id # Set your ACR resource ID here
+  acr_id = module.acr.container_registry_id # Set your ACR resource ID here
   # VNet and Private Endpoint Integration
   private_endpoint_subnet_id             = module.subnet-ep.subnet_ids["sub3"] # Use private endpoint subnet here
   enable_private_endpoint                = true

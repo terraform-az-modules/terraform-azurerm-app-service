@@ -486,7 +486,7 @@ variable "staging_slot_custom_app_settings" {
 
 variable "app_insights_api_key_enable" {
   type        = bool
-  default     = true
+  default     = false
   description = "Enable creation of Application Insights API Key"
 }
 
