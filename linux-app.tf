@@ -448,10 +448,10 @@ resource "azurerm_linux_web_app_slot" "staging" {
 
   # Inherit identity from main app
   dynamic "identity" {
-    for_each = var.identity[*]
+    for_each = [var.identity]
     content {
-      type         = var.identity.type
-      identity_ids = var.identity.identity_ids
+      type         = identity.value.type
+      identity_ids = identity.value.identity_ids
     }
   }
 
