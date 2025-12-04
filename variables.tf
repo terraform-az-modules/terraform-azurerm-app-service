@@ -106,12 +106,6 @@ variable "os_type" {
 ##-----------------------------------------------------------------------------
 ## App Service Plan 
 ##-----------------------------------------------------------------------------
-variable "enable_asp" {
-  type        = bool
-  default     = true
-  description = "Enable creation of the App Service Plan"
-}
-
 variable "linux_sku_name" {
   type        = string
   default     = "B1"
