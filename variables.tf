@@ -149,8 +149,9 @@ variable "existing_service_plan_id" {
 }
 
 variable "zone_balancing_enabled" {
-  type    = bool
-  default = false
+  description = "Flag to enable/disable Zone Balancing d"
+  type        = bool
+  default     = false
 
   validation {
     condition     = !var.zone_balancing_enabled || (var.worker_count > 1)
