@@ -201,7 +201,7 @@ module "linux-web-app" {
       image             = "nginx:latest"
       registry_url      = "testcr10.azurecr.io" # null for public hub; set like "myregistry.azurecr.io" for ACR
       registry_username = ""
-      registry_password = ""
+      registry_password = null # Set explicitly only when not using managed identity.
     }
   }
   acr_id = module.acr.container_registry_id # Set your ACR resource ID here
