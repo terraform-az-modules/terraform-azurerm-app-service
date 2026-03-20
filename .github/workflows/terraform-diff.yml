@@ -8,7 +8,7 @@ jobs:
 # Update 'Job name' and 'terraform_directory' as needed based on the module structure.
   linux-container-example:
     if: github.actor != 'dependabot[bot]'
-    uses: clouddrove/github-shared-workflows/.github/workflows/tf-pr-checks.yaml@master
+    uses: clouddrove/github-shared-workflows/.github/workflows/tf-pr-checks.yaml@88efd7724e007c8f721a219498be29e0c9ad471b
     with:
       provider: 'azurerm'
       terraform_directory: 'examples/linux_container'
@@ -19,7 +19,7 @@ jobs:
 
   linux-web-app-example:
     if: github.actor != 'dependabot[bot]'
-    uses: clouddrove/github-shared-workflows/.github/workflows/tf-pr-checks.yaml@master
+    uses: clouddrove/github-shared-workflows/.github/workflows/tf-pr-checks.yaml@88efd7724e007c8f721a219498be29e0c9ad471b
     with:
       provider: 'azurerm'
       terraform_directory: 'examples/linux_web_app'
@@ -30,7 +30,7 @@ jobs:
 
   windows-web-app-example:
     if: github.actor != 'dependabot[bot]'
-    uses: clouddrove/github-shared-workflows/.github/workflows/tf-pr-checks.yaml@master
+    uses: clouddrove/github-shared-workflows/.github/workflows/tf-pr-checks.yaml@88efd7724e007c8f721a219498be29e0c9ad471b
     with:
       provider: 'azurerm'
       terraform_directory: 'examples/windows_web_app'
