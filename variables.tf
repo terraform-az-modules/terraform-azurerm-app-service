@@ -163,7 +163,7 @@ variable "zone_balancing_enabled" {
 ##-----------------------------------------------------------------------------
 variable "public_network_access_enabled" {
   type        = bool
-  default     = true
+  default     = false
   description = "Whether enable public access for the App Service."
 }
 
@@ -333,7 +333,7 @@ variable "client_affinity_enabled" {
 
 variable "https_only" {
   type        = bool
-  default     = false
+  default     = true
   description = "HTTPS restriction for App Service. See documentation https://www.terraform.io/docs/providers/azurerm/r/app_service.html#https_only"
 }
 
