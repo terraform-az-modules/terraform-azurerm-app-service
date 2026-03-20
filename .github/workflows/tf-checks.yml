@@ -10,19 +10,19 @@ jobs:
     uses: clouddrove/github-shared-workflows/.github/workflows/tf-checks.yml@2.1.1
     with:
       working_directory: './examples/linux_container/'
-      provider: none
+      provider: azurerm
 
   linux-web-app-example:
     uses: clouddrove/github-shared-workflows/.github/workflows/tf-checks.yml@2.1.1
     with:
       working_directory: './examples/linux_web_app/'
-      provider: none
+      provider: azurerm
 
   windows-web-app-example:
     uses: clouddrove/github-shared-workflows/.github/workflows/tf-checks.yml@2.1.1
     with:
       working_directory: './examples/windows_web_app/'
-      provider: none
+      provider: azurerm
 
 # Seperate Job for TFlint workflow call
   tf-lint:
