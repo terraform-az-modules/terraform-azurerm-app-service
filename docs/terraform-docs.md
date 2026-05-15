@@ -51,12 +51,15 @@
 | <a name="input_client_affinity_enabled"></a> [client\_affinity\_enabled](#input\_client\_affinity\_enabled) | Client affinity activation for App Service. See documentation https://www.terraform.io/docs/providers/azurerm/r/app_service.html#client_affinity_enabled | `bool` | `false` | no |
 | <a name="input_connection_strings"></a> [connection\_strings](#input\_connection\_strings) | Connection strings for App Service. See documentation https://www.terraform.io/docs/providers/azurerm/r/app_service.html#connection_string | `list(map(string))` | `[]` | no |
 | <a name="input_custom_name"></a> [custom\_name](#input\_custom\_name) | Override default naming convention | `string` | `null` | no |
+| <a name="input_custom_network_interface_name"></a> [custom\_network\_interface\_name](#input\_custom\_network\_interface\_name) | Custom network interface name for azurerm\_private\_endpoint for provider v4+ | `string` | `null` | no |
 | <a name="input_deployment_mode"></a> [deployment\_mode](#input\_deployment\_mode) | Specifies how the infrastructure/resource is deployed | `string` | `"terraform"` | no |
 | <a name="input_enable"></a> [enable](#input\_enable) | Set to false to prevent the module from creating any resources. | `bool` | `true` | no |
 | <a name="input_enable_diagnostic"></a> [enable\_diagnostic](#input\_enable\_diagnostic) | Enable diagnostic settings for Linux Web App | `bool` | `false` | no |
 | <a name="input_enable_private_endpoint"></a> [enable\_private\_endpoint](#input\_enable\_private\_endpoint) | enable or disable private endpoint to storage account | `bool` | `false` | no |
 | <a name="input_enable_staging_slot"></a> [enable\_staging\_slot](#input\_enable\_staging\_slot) | Enable staging slot for blue-green deployments | `bool` | `false` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment (e.g. `prod`, `dev`, `staging`). | `string` | `null` | no |
+| <a name="input_eventhub_authorization_rule_id"></a> [eventhub\_authorization\_rule\_id](#input\_eventhub\_authorization\_rule\_id) | Eventhub authorization rule ID for azurerm\_monitor\_diagnostic\_setting for provider v4+ | `string` | `null` | no |
+| <a name="input_eventhub_name"></a> [eventhub\_name](#input\_eventhub\_name) | Eventhub name for azurerm\_monitor\_diagnostic\_setting for provider v4+ | `string` | `null` | no |
 | <a name="input_existing_service_plan_id"></a> [existing\_service\_plan\_id](#input\_existing\_service\_plan\_id) | If provided, use this existing Service Plan ID instead of creating a new one. | `string` | `null` | no |
 | <a name="input_extra_tags"></a> [extra\_tags](#input\_extra\_tags) | Variable to pass extra tags. | `map(string)` | `null` | no |
 | <a name="input_https_only"></a> [https\_only](#input\_https\_only) | HTTPS restriction for App Service. See documentation https://www.terraform.io/docs/providers/azurerm/r/app_service.html#https_only | `bool` | `true` | no |
@@ -68,6 +71,7 @@
 | <a name="input_linux_sku_name"></a> [linux\_sku\_name](#input\_linux\_sku\_name) | SKU name for Linux App Service Plan (e.g. B1, P1V2) | `string` | `"B1"` | no |
 | <a name="input_linux_web_app_worker_count"></a> [linux\_web\_app\_worker\_count](#input\_linux\_web\_app\_worker\_count) | Linux Web App worker instance count | `number` | `1` | no |
 | <a name="input_location"></a> [location](#input\_location) | The location/region where the virtual network is created. Changing this forces a new resource to be created. | `string` | `null` | no |
+| <a name="input_log_analytics_destination_type"></a> [log\_analytics\_destination\_type](#input\_log\_analytics\_destination\_type) | Log analytics destination type for azurerm\_monitor\_diagnostic\_setting for provider v4+ | `string` | `null` | no |
 | <a name="input_log_analytics_workspace_id"></a> [log\_analytics\_workspace\_id](#input\_log\_analytics\_workspace\_id) | Log Analytics Workspace ID for diagnostic logs | `string` | `null` | no |
 | <a name="input_log_enabled"></a> [log\_enabled](#input\_log\_enabled) | Enable log categories for diagnostic settings | `bool` | `true` | no |
 | <a name="input_managedby"></a> [managedby](#input\_managedby) | ManagedBy, eg 'terraform-az-modules'. | `string` | `"terraform-az-modules"` | no |
@@ -77,6 +81,7 @@
 | <a name="input_name"></a> [name](#input\_name) | Name  (e.g. `app` or `cluster`). | `string` | `null` | no |
 | <a name="input_os_type"></a> [os\_type](#input\_os\_type) | The O/S type for the App Services to be hosted in this plan. Possible values include `Windows`, `Linux`, and `WindowsContainer`. | `string` | n/a | yes |
 | <a name="input_per_site_scaling_enabled"></a> [per\_site\_scaling\_enabled](#input\_per\_site\_scaling\_enabled) | Should Per Site Scaling be enabled. | `bool` | `false` | no |
+| <a name="input_premium_plan_auto_scale_enabled"></a> [premium\_plan\_auto\_scale\_enabled](#input\_premium\_plan\_auto\_scale\_enabled) | Enable auto scale for premium plan in azurerm\_service\_plan for provider v4+ | `bool` | `false` | no |
 | <a name="input_private_dns_zone_ids"></a> [private\_dns\_zone\_ids](#input\_private\_dns\_zone\_ids) | Id of the private DNS Zone | `string` | `null` | no |
 | <a name="input_private_endpoint_subnet_id"></a> [private\_endpoint\_subnet\_id](#input\_private\_endpoint\_subnet\_id) | Subnet ID for private endpoint | `string` | `null` | no |
 | <a name="input_public_network_access_enabled"></a> [public\_network\_access\_enabled](#input\_public\_network\_access\_enabled) | Whether enable public access for the App Service. | `bool` | `false` | no |
@@ -98,6 +103,7 @@
 | <a name="input_windows_sku_name"></a> [windows\_sku\_name](#input\_windows\_sku\_name) | SKU name for Windows App Service Plan (e.g. S1, P1V2) | `string` | `"S1"` | no |
 | <a name="input_windows_web_app_worker_count"></a> [windows\_web\_app\_worker\_count](#input\_windows\_web\_app\_worker\_count) | Windows Web App worker instance count | `number` | `1` | no |
 | <a name="input_worker_count"></a> [worker\_count](#input\_worker\_count) | The number of Workers (instances) to be allocated. | `number` | `1` | no |
+| <a name="input_write_permissions"></a> [write\_permissions](#input\_write\_permissions) | Write permissions for azurerm\_application\_insights\_api\_key for provider v4+ | `list(string)` | `[]` | no |
 | <a name="input_zone_balancing_enabled"></a> [zone\_balancing\_enabled](#input\_zone\_balancing\_enabled) | n/a | `bool` | `false` | no |
 
 ## Outputs

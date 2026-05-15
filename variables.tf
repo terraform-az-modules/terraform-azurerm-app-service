@@ -516,3 +516,39 @@ variable "metric_enabled" {
   type        = bool
   default     = true
 }
+
+variable "premium_plan_auto_scale_enabled" {
+  type        = bool
+  default     = false
+  description = "Enable auto scale for premium plan in azurerm_service_plan for provider v4+"
+}
+
+variable "custom_network_interface_name" {
+  type        = string
+  default     = null
+  description = "Custom network interface name for azurerm_private_endpoint for provider v4+"
+}
+
+variable "write_permissions" {
+  type        = list(string)
+  default     = []
+  description = "Write permissions for azurerm_application_insights_api_key for provider v4+"
+}
+
+variable "eventhub_authorization_rule_id" {
+  type        = string
+  default     = null
+  description = "Eventhub authorization rule ID for azurerm_monitor_diagnostic_setting for provider v4+"
+}
+
+variable "log_analytics_destination_type" {
+  type        = string
+  default     = null
+  description = "Log analytics destination type for azurerm_monitor_diagnostic_setting for provider v4+"
+}
+
+variable "eventhub_name" {
+  type        = string
+  default     = null
+  description = "Eventhub name for azurerm_monitor_diagnostic_setting for provider v4+"
+}

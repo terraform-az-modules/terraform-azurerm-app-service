@@ -30,11 +30,12 @@ resource "azurerm_service_plan" "main" {
     var.worker_count
   )
   # Note: worker_count is null for Linux SKU "B1" as it doesn't support specifying worker count.
-  maximum_elastic_worker_count = var.maximum_elastic_worker_count
-  app_service_environment_id   = var.app_service_environment_id
-  per_site_scaling_enabled     = var.per_site_scaling_enabled
-  zone_balancing_enabled       = var.zone_balancing_enabled
-  tags                         = module.labels.tags
+  maximum_elastic_worker_count    = var.maximum_elastic_worker_count
+  app_service_environment_id      = var.app_service_environment_id
+  per_site_scaling_enabled        = var.per_site_scaling_enabled
+  zone_balancing_enabled          = var.zone_balancing_enabled
+  tags                            = module.labels.tags
+  premium_plan_auto_scale_enabled = var.premium_plan_auto_scale_enabled
 }
 
 ##-----------------------------------------------------------------------------
@@ -63,6 +64,7 @@ resource "azurerm_private_endpoint" "pep" {
       tags,
     ]
   }
+  custom_network_interface_name = var.custom_network_interface_name
 }
 
 ##-----------------------------------------------------------------------------
@@ -73,6 +75,7 @@ resource "azurerm_application_insights_api_key" "read_telemetry" {
   name                    = var.resource_position_prefix ? format("appi-api-key-%s", local.name) : format("%s-appi-api-key", local.name)
   application_insights_id = var.app_insights_id
   read_permissions        = var.read_permissions
+  write_permissions       = var.write_permissions
 }
 
 ##-----------------------------------------------------------------------------
@@ -105,4 +108,7 @@ resource "azurerm_monitor_diagnostic_setting" "web_app_diag" {
   lifecycle {
     ignore_changes = [enabled_log, enabled_metric]
   }
+  eventhub_authorization_rule_id = var.eventhub_authorization_rule_id
+  log_analytics_destination_type = var.log_analytics_destination_type
+  eventhub_name                  = var.eventhub_name
 }
