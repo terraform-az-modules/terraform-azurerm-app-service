@@ -552,3 +552,21 @@ variable "eventhub_name" {
   default     = null
   description = "Eventhub name for azurerm_monitor_diagnostic_setting for provider v4+"
 }
+
+variable "condition_version" {
+  type        = string
+  default     = null
+  description = "Condition version for the role assignment."
+}
+
+variable "condition" {
+  type        = string
+  default     = null
+  description = "Condition for the role assignment."
+}
+
+variable "description" {
+  type        = string
+  default     = null
+  description = "Description for the role assignment."
+}

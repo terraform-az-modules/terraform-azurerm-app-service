@@ -243,6 +243,9 @@ module "linux-web-app" {
       }
     }
   }
+  # condition = null  # Optional condition for the role assignment.
+  # condition_version = null  # Optional condition version for the role assignment.
+  # description = null  # Optional description for the role assignment.
 }
 
 

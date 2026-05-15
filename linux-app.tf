@@ -466,4 +466,5 @@ resource "azurerm_linux_web_app_slot" "staging" {
       app_settings
     ]
   }
+  https_only = var.https_only
 }
