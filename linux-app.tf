@@ -79,7 +79,6 @@ resource "azurerm_linux_web_app" "main" {
         java_server_version = var.linux_app_stack.type == "java" ? var.linux_app_stack.java_server_version : null
         php_version         = var.linux_app_stack.type == "php" ? var.linux_app_stack.php_version : null
         python_version      = var.linux_app_stack.type == "python" ? var.linux_app_stack.python_version : null
-        ruby_version        = var.linux_app_stack.type == "ruby" ? var.linux_app_stack.ruby_version : null
         go_version          = var.linux_app_stack.type == "go" ? var.linux_app_stack.go_version : null
       }
 
@@ -427,7 +426,6 @@ resource "azurerm_linux_web_app_slot" "staging" {
         java_server_version = var.linux_app_stack.type == "java" ? var.linux_app_stack.java_server_version : null
         php_version         = var.linux_app_stack.type == "php" ? var.linux_app_stack.php_version : null
         python_version      = var.linux_app_stack.type == "python" ? var.linux_app_stack.python_version : null
-        ruby_version        = var.linux_app_stack.type == "ruby" ? var.linux_app_stack.ruby_version : null
         go_version          = var.linux_app_stack.type == "go" ? var.linux_app_stack.go_version : null
       }
     }
